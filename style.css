@@ -1,0 +1,23 @@
+body {
+        font-family: sans-serif;
+        text-align: center;
+        background: #f4f4f4;
+        margin: 0;
+        padding: 0;
+      }
+      
+      #board-container {
+        width: 90vw;
+        max-width: 80vmin;
+        margin: auto;
+        aspect-ratio: 1 / 1;
+      }
+      
+      #board {
+        width: 100%;
+        height: 100%;
+        border: 2px solid #333;
+        background-color: white;
+        padding: 10%;
+      }
+      
