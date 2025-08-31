@@ -12,6 +12,34 @@
     <svg id="board" width="500" height="750">
       <g id="layer"></g>
     </svg>
+
+    <!-- New, styled scoreboard -->
+    <aside id="scoreboard" class="scoreboard">
+      <div class="scoreboard-header">
+        <span class="title">Scoreboard</span>
+        <button id="reset-score" class="reset-btn" type="button" aria-label="Reset score">Reset</button>
+      </div>
+
+      <div class="players">
+        <div class="player-card" data-player="0">
+          <span class="chip chip-red" aria-hidden="true"></span>
+          <div class="meta">
+            <div class="name">Player 1</div>
+            <div class="score"><span id="player1-score">0</span></div>
+          </div>
+        </div>
+
+        <div class="player-card" data-player="1">
+          <span class="chip chip-blue" aria-hidden="true"></span>
+          <div class="meta">
+            <div class="name">Player 2</div>
+            <div class="score"><span id="player2-score">0</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="turn-indicator" class="turn-indicator">Red’s turn</div>
+    </aside>
   </div>
   <script src="script.js"></script>
 </body>

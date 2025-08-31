@@ -5,23 +5,110 @@ body {
         margin: 0;
         padding: 0;
 }
-svg {
-}
+
 #board-container {
-        margin: auto;
-        /* aspect-ratio: 1 / 1; */
+  margin: auto;
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 16px;
+  flex-wrap: wrap;
 }
 
 #board {
-        background-color: white;
-        padding: 10%;
-        /* border: 1px solid #333; */
+  background-color: white;
+  padding: 10%;
 }
-.piece {
+
+/* Scoreboard styles */
+.scoreboard {
+  width: 260px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+  border: 1px solid #eaeaea;
+  padding: 16px;
+}
+
+.scoreboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.scoreboard .title {
+  font-weight: 700;
+  font-size: 16px;
+  color: #2c3e50;
+}
+
+.reset-btn {
+  appearance: none;
+  border: 1px solid #e0e0e0;
+  background: #f7f7f7;
+  color: #333;
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 12px;
   cursor: pointer;
-  transition: stroke-width 120ms ease;
+  transition: background 0.15s ease, transform 0.05s ease;
 }
-.selected {
-  stroke: #a1f800;      /* highlight color */
-  stroke-width: 2;      /* visible ring */
+.reset-btn:hover { background: #efefef; }
+.reset-btn:active { transform: translateY(1px); }
+
+.players {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.player-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #ededed;
+  background: linear-gradient(180deg, #fff 0%, #fafafa 100%);
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.player-card.active {
+  border-color: transparent;
+  box-shadow: 0 0 0 3px rgba(161, 248, 0, 0.5), 0 8px 20px rgba(0,0,0,0.05);
+}
+
+.chip {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+}
+.chip-red { background: #ff4d4f; }
+.chip-blue { background: #3f79ff; }
+
+.meta { display: flex; justify-content: space-between; width: 100%; align-items: center; }
+.name { font-weight: 600; color: #34495e; }
+.score { font-weight: 800; font-size: 18px; color: #111; }
+
+.turn-indicator {
+  text-align: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #f6faff;
+  color: #2d3a8c;
+  border: 1px solid #e6efff;
+  font-weight: 600;
+}
+
+/* Pieces (existing) */
+.piece { cursor: pointer; transition: stroke-width 120ms ease; }
+.selected { stroke: #a1f800; stroke-width: 2; }
+
+/* Small screens */
+@media (max-width: 700px) {
+  #board { width: 90vw; height: auto; }
+  .scoreboard { width: 100%; }
 }

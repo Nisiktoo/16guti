@@ -2,7 +2,7 @@ const board = document.getElementById("board");
 const rowSize = 9;
 const colSize = 5;
 const boardSize = Number(board.getAttribute("width")); // ensure number
-const circleRadius = 5;
+const circleRadius = 8;
 const color = ["red", "blue", "transparent"];
 board.setAttribute("height", (boardSize * 3) / 2 + 4 * circleRadius);
 board.setAttribute("width", boardSize + 4 * circleRadius);
@@ -18,10 +18,19 @@ layer.setAttribute("transform", `translate(${PADDING}, ${PADDING})`);
 const spacing = boardSize / (colSize - 1);
 const diagonalSpacing = Math.sqrt(2) * spacing
 
-
+let score = [0, 0];
 let currentTurn = 0;
 let currentState = 0;
 let selectedGuti = null;
+
+// Scoreboard refs
+const p1ScoreEl = document.getElementById("player1-score");
+const p2ScoreEl = document.getElementById("player2-score");
+const turnEl = document.getElementById("turn-indicator");
+const p1Card = document.querySelector('.player-card[data-player="0"]');
+const p2Card = document.querySelector('.player-card[data-player="1"]');
+const resetBtn = document.getElementById("reset-score");
+
 // Guti class — now each intersection is a Guti
 class Guti {
         constructor(row, col, player = 2) {
@@ -56,32 +65,167 @@ function handleGutiClick(e) {
         }
 
         if (currentState === 0) {
+                if (guti.player > 1) return;
                 currentState = 1;
                 selectedGuti = guti;
                 guti.el.classList.add("selected");
         } else if (currentState === 1) {
-                /* current player chooses his another guti for move*/
                 if (selectedGuti.player == guti.player) {
-                        // Move the selected Guti to the clicked position
                         selectedGuti.el.classList.remove("selected");
                         selectedGuti = guti;
                         selectedGuti.el.classList.add("selected");
                         return;
                 }
-
-
-
-        } else {
-                // ...existing code...
         }
+
+        let capturedGuti = moveGuti(selectedGuti, guti);
+        if (capturedGuti === 0) return;
+
+        if (capturedGuti === 1) {
+                currentState = 0;
+                currentTurn = 1 - currentTurn;
+                selectedGuti.el.classList.remove("selected");
+                selectedGuti = null;
+                updateScoreboard(); // turn changed
+        } else {
+                score[currentTurn]++;
+                currentState = 2;
+                selectedGuti = guti;
+                selectedGuti.el.classList.add("selected");
+                updateScoreboard(); // score changed
+
+                if (canCapture(selectedGuti)) {
+                        alert("more capture");
+                } else {
+                        currentState = 0;
+                        currentTurn = 1 - currentTurn;
+                        selectedGuti.el.classList.remove("selected");
+                        selectedGuti = null;
+                        updateScoreboard(); // turn changed
+                }
+        }
+}
+function swapGuti(currentGuti, targetGuti) {
+        currentGuti.el.classList.remove("selected");
+        targetGuti.player = currentGuti.player;
+        currentGuti.player = 2;
+        currentGuti.updateColor();
+        targetGuti.updateColor();
+
+}
+
+
+function canCapture(currentGuti) {
+        const { row, col } = currentGuti;
+        const canMoveDiagonally = (row + col) % 2 === 0;
+        const directions = [
+                { dr: 2, dc: 0 }, { dr: -2, dc: 0 },
+                { dr: 0, dc: 2 }, { dr: 0, dc: -2 },
+        ];
+        const diagonalDirections = [
+                { dr: 2, dc: 2 }, { dr: -2, dc: -2 },
+                { dr: 2, dc: -2 }, { dr: -2, dc: 2 }
+        ];
+
+        for (const { dr, dc } of directions) {
+                const targetRow = row + dr;
+                const targetCol = col + dc;
+                if (badPoint(targetRow, targetCol)) continue;
+
+                const middleGuti = gutis[row + dr / 2][col + dc / 2];
+                const targetGuti = gutis[targetRow][targetCol];
+                if (middleGuti && middleGuti.player === (1 - currentGuti.player) &&
+                        targetGuti && targetGuti.player === 2) {
+                        return true;
+                }
+        }
+        if (canMoveDiagonally) {
+                for (const { dr, dc } of diagonalDirections) {
+                        const targetRow = row + dr;
+                        const targetCol = col + dc;
+                        if (badPoint(targetRow, targetCol)) continue;
+
+                        const middleGuti = gutis[row + dr / 2][col + dc / 2];
+                        if (middleGuti && middleGuti.player === (1 - currentGuti.player) &&
+                                targetGuti && targetGuti.player === 2) {
+                                return true;
+                        }
+                }
+        }
+        return false;
+}
+
+
+function moveGuti(currentGuti, targetGuti) {
+        let middleGuti = null;
+        const canMoveDiagonally = (currentGuti.row + currentGuti.col) % 2 === 0;
+        let dr = Math.abs(currentGuti.row - targetGuti.row);
+        let dc = Math.abs(currentGuti.col - targetGuti.col);
+        let distance = dr + dc;
+        if (distance !== 1 && distance !== 2 && distance !== 4 || currentState === 0) return 0;
+        if (distance == 1) {
+                if (currentState == 2) return 0;
+                swapGuti(currentGuti, targetGuti);
+                return 1;
+        }
+
+
+        /* killing move */
+        if (dr == 2 || dc == 2) {
+                if (!canMoveDiagonally && (dr + dc) === 4) return 0;
+                let x = currentGuti.row + (targetGuti.row - currentGuti.row) / 2;
+                let y = currentGuti.col + (targetGuti.col - currentGuti.col) / 2;
+                middleGuti = gutis[x][y];
+                if (typeof middleGuti === 'undefined' || middleGuti === null) return 0;
+                if (middleGuti.player !== (1 - currentGuti.player)) return 0;
+                swapGuti(currentGuti, targetGuti);
+                middleGuti.player = 2;
+                middleGuti.updateColor();
+                return 2;
+        }
+
+        /* non-killing move */
+        if (currentState === 1) {
+                if (distance == 2 && !canMoveDiagonally) return 0;
+                swapGuti(currentGuti, targetGuti);
+                return 1;
+        }
+        return 0;
+
 }
 
 // Clear selection when clicking outside any guti
 board.addEventListener("click", () => {
-        if (!selectedGuti || currentState === 0) return;
+        if (!selectedGuti || currentState === 2) return;
         selectedGuti.el.classList.remove("selected");
         selectedGuti = null;
         currentState = 0;
+});
+
+function updateScoreboard() {
+        // Update numbers
+        if (score[0] >= 16) {
+                alert("Red wins!");
+                resetGame();
+        } else if (score[1] >= 16) {
+                alert("Blue wins!");
+                resetGame();
+        }
+        p1ScoreEl.textContent = score[0];
+        p2ScoreEl.textContent = score[1];
+
+        // Turn indicator text + active highlight
+        const isRedTurn = currentTurn === 0;
+        turnEl.textContent = isRedTurn ? "Red’s turn" : "Blue’s turn";
+        p1Card.classList.toggle("active", isRedTurn);
+        p2Card.classList.toggle("active", !isRedTurn);
+}
+
+resetBtn?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        score = [0, 0];
+        updateScoreboard();
+        resetGame();
 });
 
 function getSpacing(row) {
@@ -208,7 +352,6 @@ function drawGrid(space) {
 
 }
 drawGrid(spacing);
-let score = [0, 0];
 let gutis = [[], [], [], [], [], [], [], [], []];
 
 /* place the gutis on board */
@@ -228,7 +371,7 @@ function initializeGuti() {
                                 gutis[i].push(null);
                                 continue;
                         }
-                        gutis[1].push(new Guti(i, j, 1));
+                        gutis[i].push(new Guti(i, j, 1));
                 }
         }
         for (let j = 0; j < colSize; j++) {
@@ -236,4 +379,37 @@ function initializeGuti() {
         }
 }
 
+
+function resetGame() {
+        currentTurn = 0;
+        currentState = 0;
+        for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < colSize; j++) {
+                        if (i < 2 && (j == 0 || j == 4)) {
+                                continue;
+                        }
+                        gutis[i][j].player = 0;
+                        gutis[i][j].updateColor();
+
+                }
+        }
+        for (let i = 5; i < rowSize; i++) {
+                for (let j = 0; j < colSize; j++) {
+                        if (i > 6 && (j == 0 || j == 4)) {
+                                continue;
+                        }
+                        gutis[i][j].player = 1;
+                        gutis[i][j].updateColor();
+                }
+        }
+        for (let j = 0; j < colSize; j++) {
+                gutis[4][j].player = 2;
+                gutis[4][j].updateColor();
+        }
+}
+
 initializeGuti();
+
+// Initialize scoreboard UI at start
+updateScoreboard();
+
