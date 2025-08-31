@@ -17,3 +17,11 @@ svg {
         padding: 10%;
         /* border: 1px solid #333; */
 }
+.piece {
+  cursor: pointer;
+  transition: stroke-width 120ms ease;
+}
+.selected {
+  stroke: #a1f800;      /* highlight color */
+  stroke-width: 2;      /* visible ring */
+}

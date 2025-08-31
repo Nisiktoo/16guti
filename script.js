@@ -3,6 +3,7 @@ const rowSize = 9;
 const colSize = 5;
 const boardSize = Number(board.getAttribute("width")); // ensure number
 const circleRadius = 5;
+const color = ["red", "blue", "transparent"];
 board.setAttribute("height", (boardSize * 3) / 2 + 4 * circleRadius);
 board.setAttribute("width", boardSize + 4 * circleRadius);
 
@@ -12,15 +13,77 @@ const PADDING = circleRadius + 1;
 const layer = document.getElementById("layer");
 layer.setAttribute("transform", `translate(${PADDING}, ${PADDING})`);
 
+
+
 const spacing = boardSize / (colSize - 1);
 const diagonalSpacing = Math.sqrt(2) * spacing
-const points = [];
+
+
+let currentTurn = 0;
+let currentState = 0;
+let selectedGuti = null;
+// Guti class — now each intersection is a Guti
 class Guti {
-        constructor(player, position) {
-                this.player = player;
-                this.position = position;
+        constructor(row, col, player = 2) {
+                this.row = row;
+                this.col = col;
+                this.player = player; // 0, 1, or 2
+                this.el = document.createElementNS(SVG_NS, "circle");
+                this.el.setAttribute("r", circleRadius);
+                this.el.style.cursor = "pointer";
+                this.updateColor();
+
+                const { x, y } = getPixelPostion(spacing, row, col);
+                this.el.setAttribute("cx", y);
+                this.el.setAttribute("cy", x);
+
+                this.el.addEventListener("click", handleGutiClick.bind(this)); // <-- pass bound function
+                layer.appendChild(this.el);
+        }
+
+        updateColor() {
+                if (this.player === 0) this.el.setAttribute("fill", color[0]);
+                else if (this.player === 1) this.el.setAttribute("fill", color[1]);
+                else this.el.setAttribute("fill", color[2]);
         }
 }
+function handleGutiClick(e) {
+        const guti = this; // 'this' is the Guti instance due to .bind(this)
+        e?.stopPropagation?.();
+
+        if (currentTurn !== guti.player && guti.player < 2) {
+                return;
+        }
+
+        if (currentState === 0) {
+                currentState = 1;
+                selectedGuti = guti;
+                guti.el.classList.add("selected");
+        } else if (currentState === 1) {
+                /* current player chooses his another guti for move*/
+                if (selectedGuti.player == guti.player) {
+                        // Move the selected Guti to the clicked position
+                        selectedGuti.el.classList.remove("selected");
+                        selectedGuti = guti;
+                        selectedGuti.el.classList.add("selected");
+                        return;
+                }
+
+
+
+        } else {
+                // ...existing code...
+        }
+}
+
+// Clear selection when clicking outside any guti
+board.addEventListener("click", () => {
+        if (!selectedGuti || currentState === 0) return;
+        selectedGuti.el.classList.remove("selected");
+        selectedGuti = null;
+        currentState = 0;
+});
+
 function getSpacing(row) {
         if (row <= 1 || row >= 7) {
                 return spacing / 2;
@@ -46,13 +109,13 @@ function getPixelPostion(space, row, col) {
                 y = col * space;
         } else if (row === 1) {
                 x = space / 2;
-                y = 2*space;
-                y += (space/2 * (col-2));
+                y = 2 * space;
+                y += (space / 2 * (col - 2));
         } else if (row === 7) {
                 x = 5 * space;
                 x += space / 2;
-                y = 2*space;
-                y += (space/2 * (col-2));
+                y = 2 * space;
+                y += (space / 2 * (col - 2));
 
         } else {
                 if (row === 8) row--;
@@ -60,7 +123,7 @@ function getPixelPostion(space, row, col) {
                 y = col * space;
 
         }
-        return {x, y};
+        return { x, y };
 }
 
 function drawGrid(space) {
@@ -73,45 +136,45 @@ function drawGrid(space) {
         let startPoint, endPoint;
         for (let i = 1; i <= 5; i++) {
                 /* horizontal lines */
-                startPoint = {x: i * space, y: 0};
-                endPoint = {x: i * space, y: 4 * space};
+                startPoint = { x: i * space, y: 0 };
+                endPoint = { x: i * space, y: 4 * space };
                 connections.push([startPoint, endPoint]);
                 /* vertical lines */
-                startPoint = {x: space, y: (i-1) * space};
-                endPoint = {x: 5 * space, y: (i-1) * space};
+                startPoint = { x: space, y: (i - 1) * space };
+                endPoint = { x: 5 * space, y: (i - 1) * space };
                 connections.push([startPoint, endPoint]);
         }
         /* make the diagonal lines */
         // forward
-        startPoint = {x: 3 * space, y: 0};    
-        endPoint = {x: 0, y: 3 * space};
+        startPoint = { x: 3 * space, y: 0 };
+        endPoint = { x: 0, y: 3 * space };
         connections.push([startPoint, endPoint]);
-        startPoint = {x: 5 * space, y: 0};    
-        endPoint = {x: space, y: 4 * space};
+        startPoint = { x: 5 * space, y: 0 };
+        endPoint = { x: space, y: 4 * space };
         connections.push([startPoint, endPoint]);
-        startPoint = {x: 6 * space, y: space};
-        endPoint = {x: 3 * space, y: 4 * space};
+        startPoint = { x: 6 * space, y: space };
+        endPoint = { x: 3 * space, y: 4 * space };
         connections.push([startPoint, endPoint]);
 
 
         // backward
-        startPoint = {x: 3 * space, y: 0};
-        endPoint = {x: 6*space, y: 3 * space};
+        startPoint = { x: 3 * space, y: 0 };
+        endPoint = { x: 6 * space, y: 3 * space };
         connections.push([startPoint, endPoint]);
-        startPoint = {x: 1 * space, y: 0};
-        endPoint = {x: 5 * space, y: 4 * space};
+        startPoint = { x: 1 * space, y: 0 };
+        endPoint = { x: 5 * space, y: 4 * space };
         connections.push([startPoint, endPoint]);
-        startPoint = {x: 0, y: space};
-        endPoint = {x: 3 * space, y: 4 * space};
+        startPoint = { x: 0, y: space };
+        endPoint = { x: 3 * space, y: 4 * space };
         connections.push([startPoint, endPoint]);
 
         /* make the tiny lines */
-        startPoint = {x: 0, y : space}
-        endPoint = {x: 0, y: 3 * space};
+        startPoint = { x: 0, y: space }
+        endPoint = { x: 0, y: 3 * space };
         connections.push([startPoint, endPoint]);
 
-        startPoint = {x: space/2, y : space + space / 2}
-        endPoint = {x: space/2, y : 2 * space + space / 2}
+        startPoint = { x: space / 2, y: space + space / 2 }
+        endPoint = { x: space / 2, y: 2 * space + space / 2 }
         connections.push([startPoint, endPoint]);
 
         startPoint = getPixelPostion(space, 0, 2);
@@ -146,35 +209,31 @@ function drawGrid(space) {
 }
 drawGrid(spacing);
 let score = [0, 0];
-let gutis = [[], []]; // player 0 and player 1 gutis
+let gutis = [[], [], [], [], [], [], [], [], []];
+
+/* place the gutis on board */
 function initializeGuti() {
         for (let i = 0; i < 4; i++) {
-                for (let j = 0; j < 5; j++) {
-                        if (i < 2 && (j == 0 || j == 4)) continue;
-                        gutis[0].push(new Guti(0, {x: i, y: j}));
+                for (let j = 0; j < colSize; j++) {
+                        if (i < 2 && (j == 0 || j == 4)) {
+                                gutis[i].push(null);
+                                continue;
+                        }
+                        gutis[i].push(new Guti(i, j, 0));
                 }
         }
         for (let i = 5; i < rowSize; i++) {
-                for (let j = 0; j < 5; j++) {
-                        if (i > 6 && (j == 0 || j == 4)) continue;
-                        gutis[1].push(new Guti(1, {x: i, y: j}));
+                for (let j = 0; j < colSize; j++) {
+                        if (i > 6 && (j == 0 || j == 4)) {
+                                gutis[i].push(null);
+                                continue;
+                        }
+                        gutis[1].push(new Guti(i, j, 1));
                 }
         }
-}
-initializeGuti();
-function placeTheGutis() {
-  for (let p = 0; p < 2; p++) {
-    for (const guti of gutis[p]) {
-      const circle = document.createElementNS(SVG_NS, "circle");
-      const playerColor = p === 0 ? "blue" : "red";
-      const { x, y } = getPixelPostion(spacing, guti.position.x, guti.position.y);
-      circle.setAttribute("cx", y);
-      circle.setAttribute("cy", x);
-      circle.setAttribute("r", circleRadius);
-      circle.setAttribute("fill", playerColor);
-      layer.appendChild(circle); // was: board.appendChild(circle)
-    }
-  }
+        for (let j = 0; j < colSize; j++) {
+                gutis[4].push(new Guti(4, j, 2));
+        }
 }
 
-placeTheGutis();
+initializeGuti();
