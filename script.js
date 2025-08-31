@@ -104,7 +104,7 @@ function handleGutiClick(e) {
                 updateScoreboard(); // score changed
 
                 if (canCapture(selectedGuti)) {
-                        alert("more capture");
+                        /* continue capturing */
                 } else {
                         currentState = 0;
                         currentTurn = 1 - currentTurn;
@@ -143,8 +143,10 @@ function canCapture(currentGuti) {
 
                 const middleGuti = gutis[row + dr / 2][col + dc / 2];
                 const targetGuti = gutis[targetRow][targetCol];
-                if (middleGuti && middleGuti.player === (1 - currentGuti.player) &&
-                        targetGuti && targetGuti.player === 2) {
+                if (typeof middleGuti === 'undefined' || middleGuti === null) continue;
+                if (typeof targetGuti === 'undefined' || targetGuti === null) continue;
+                if (middleGuti.player === (1 - currentGuti.player) &&
+                        targetGuti.player === 2) {
                         return true;
                 }
         }
@@ -153,10 +155,12 @@ function canCapture(currentGuti) {
                         const targetRow = row + dr;
                         const targetCol = col + dc;
                         if (badPoint(targetRow, targetCol)) continue;
-
                         const middleGuti = gutis[row + dr / 2][col + dc / 2];
-                        if (middleGuti && middleGuti.player === (1 - currentGuti.player) &&
-                                targetGuti && targetGuti.player === 2) {
+                        const targetGuti = gutis[targetRow][targetCol];
+                        if (typeof middleGuti === 'undefined' || middleGuti === null) continue;
+                        if (typeof targetGuti === 'undefined' || targetGuti === null) continue;
+                        if (middleGuti.player === (1 - currentGuti.player) &&
+                                targetGuti.player === 2) {
                                 return true;
                         }
                 }
