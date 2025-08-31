@@ -1,4 +1,5 @@
 # 🎮 16 Guti Game
+👉 **[Play the game here!](https://nisiktoo.github.io/16guti/)**  
 
 A web-based implementation of the traditional **16 Guti (Sholo Guti)** board game, built with **HTML, CSS, and JavaScript**.  
 The game features an interactive board, draggable pieces, a scoreboard, and turn indication. It is fully responsive and works on desktop and mobile devices.
