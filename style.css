@@ -143,8 +143,8 @@ body {
 }
 
 .selected {
-        stroke: #cefc01;
-        stroke-width: 2;
+        stroke: #000000;
+        stroke-width: 16px;
 }
 @media (max-width: 480px) {
         #board {

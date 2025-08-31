@@ -54,7 +54,8 @@ class Guti {
                 const { x, y } = getPixelPostion(spacing, row, col);
                 this.el.setAttribute("cx", y);
                 this.el.setAttribute("cy", x);
-
+                this.el.setAttribute("stroke", "transparent");
+                this.el.setAttribute("stroke-width", "24px");
                 this.el.addEventListener("click", handleGutiClick.bind(this)); // <-- pass bound function
                 layer.appendChild(this.el);
         }
