@@ -1,8 +1,17 @@
 const board = document.getElementById("board");
 const rowSize = 9;
 const colSize = 5;
-const boardSize = board.getAttribute("width");
-board.setAttribute("height", (boardSize * 3) / 2);
+const boardSize = Number(board.getAttribute("width")); // ensure number
+const circleRadius = 5;
+board.setAttribute("height", (boardSize * 3) / 2 + 4 * circleRadius);
+board.setAttribute("width", boardSize + 4 * circleRadius);
+
+// Use the <g id="layer"> created in index.html
+const SVG_NS = "http://www.w3.org/2000/svg";
+const PADDING = circleRadius + 1;
+const layer = document.getElementById("layer");
+layer.setAttribute("transform", `translate(${PADDING}, ${PADDING})`);
+
 const spacing = boardSize / (colSize - 1);
 const diagonalSpacing = Math.sqrt(2) * spacing
 const points = [];
@@ -35,25 +44,22 @@ function getPixelPostion(space, row, col) {
         let x = 0, y = 0;
         if (row == 0) {
                 y = col * space;
-                return {x, y};
-        }
-        if (row === 1) {
+        } else if (row === 1) {
                 x = space / 2;
                 y = 2*space;
                 y += (space/2 * (col-2));
-                return {x, y};
-        }
-        if (row === 7) {
+        } else if (row === 7) {
                 x = 5 * space;
                 x += space / 2;
                 y = 2*space;
                 y += (space/2 * (col-2));
-                return {x, y};
+
+        } else {
+                if (row === 8) row--;
+                x = (row - 1) * space;
+                y = col * space;
 
         }
-        if (row === 8) row--;
-        x = (row - 1) * space;
-        y = col * space;
         return {x, y};
 }
 
@@ -126,16 +132,49 @@ function drawGrid(space) {
 
         // Draw lines
         for (const [i, j] of connections) {
-                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                const line = document.createElementNS(SVG_NS, "line");
                 line.setAttribute("x1", i.y);
                 line.setAttribute("y1", i.x);
                 line.setAttribute("x2", j.y);
                 line.setAttribute("y2", j.x);
                 line.setAttribute("stroke", "#3d91a0ff");
                 line.setAttribute("stroke-width", 2);
-                board.appendChild(line);
+                layer.appendChild(line); // was: board.appendChild(line)
         }
 
 
 }
 drawGrid(spacing);
+let score = [0, 0];
+let gutis = [[], []]; // player 0 and player 1 gutis
+function initializeGuti() {
+        for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 5; j++) {
+                        if (i < 2 && (j == 0 || j == 4)) continue;
+                        gutis[0].push(new Guti(0, {x: i, y: j}));
+                }
+        }
+        for (let i = 5; i < rowSize; i++) {
+                for (let j = 0; j < 5; j++) {
+                        if (i > 6 && (j == 0 || j == 4)) continue;
+                        gutis[1].push(new Guti(1, {x: i, y: j}));
+                }
+        }
+}
+initializeGuti();
+function placeTheGutis() {
+  for (let p = 0; p < 2; p++) {
+    for (const guti of gutis[p]) {
+      const circle = document.createElementNS(SVG_NS, "circle");
+      const playerColor = p === 0 ? "blue" : "red";
+      const { x, y } = getPixelPostion(spacing, guti.position.x, guti.position.y);
+      circle.setAttribute("cx", y);
+      circle.setAttribute("cy", x);
+      circle.setAttribute("r", circleRadius);
+      circle.setAttribute("fill", playerColor);
+      layer.appendChild(circle); // was: board.appendChild(circle)
+    }
+  }
+}
+
+placeTheGutis();
