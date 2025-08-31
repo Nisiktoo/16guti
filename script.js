@@ -1,19 +1,28 @@
 const board = document.getElementById("board");
 const rowSize = 9;
 const colSize = 5;
-const boardSize = Number(board.getAttribute("width")); // ensure number
+
+// NEW: pick the smaller between attribute width and viewport width
+const attrWidth = Number(board.getAttribute("width")) || 500;
+// Use attrWidth as internal units; CSS will scale the SVG
+let boardSize = attrWidth;
+
 const circleRadius = 8;
 const color = ["red", "blue", "transparent"];
-board.setAttribute("height", (boardSize * 3) / 2 + 4 * circleRadius);
-board.setAttribute("width", boardSize + 4 * circleRadius);
+
+// Make SVG responsive
+const vbWidth = boardSize + 4 * circleRadius;
+const vbHeight = (boardSize * 3) / 2 + 4 * circleRadius;
+board.setAttribute("viewBox", `0 0 ${vbWidth} ${vbHeight}`);
+board.setAttribute("preserveAspectRatio", "xMidYMid meet");
+board.removeAttribute("width");
+board.removeAttribute("height");
 
 // Use the <g id="layer"> created in index.html
 const SVG_NS = "http://www.w3.org/2000/svg";
 const PADDING = circleRadius + 1;
 const layer = document.getElementById("layer");
 layer.setAttribute("transform", `translate(${PADDING}, ${PADDING})`);
-
-
 
 const spacing = boardSize / (colSize - 1);
 const diagonalSpacing = Math.sqrt(2) * spacing
