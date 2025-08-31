@@ -1,11 +1,17 @@
-const svg = document.getElementById("board");
+const board = document.getElementById("board");
 const rowSize = 9;
 const colSize = 5;
-const boardSize = 500; // This matches the viewBox
+const boardSize = board.getAttribute("width");
+board.setAttribute("height", (boardSize * 3) / 2);
 const spacing = boardSize / (colSize - 1);
-
+const diagonalSpacing = Math.sqrt(2) * spacing
 const points = [];
-
+class Guti {
+        constructor(player, position) {
+                this.player = player;
+                this.position = position;
+        }
+}
 function getSpacing(row) {
         if (row <= 1 || row >= 7) {
                 return spacing / 2;
@@ -13,110 +19,123 @@ function getSpacing(row) {
         return spacing;
 }
 
-function bad_point(row, col) {
+function badPoint(row, col) {
         // console.log(row, col);
         if ((row < 0) || (row >= rowSize) || (col < 0) || (col >= colSize)) {
                 // console.log(row, col);
                 return true;
         }
-        if (row >=2 && row <= 6) return false;
+        if (row >= 2 && row <= 6) return false;
         if (col > 0 && col < colSize - 1) return false;
         return true;
 }
 
-// find the relative position of the point (x, y) on the board
-function getPixelPostion(row, col) {
-        x = 0, y = 0;
-        if (row === 1) {
-                x = spacing;
-                y = 2*spacing;
-                x += (spacing/2 * (row-2));
-                y += (spacing/2 * (col-2));
+/* find the relative position of the point (x, y) on the board */
+function getPixelPostion(space, row, col) {
+        let x = 0, y = 0;
+        if (row == 0) {
+                y = col * space;
                 return {x, y};
-
-        } else if (row === 0) {
-                x = 0;
-                y = col * spacing;
+        }
+        if (row === 1) {
+                x = space / 2;
+                y = 2*space;
+                y += (space/2 * (col-2));
                 return {x, y};
         }
         if (row === 7) {
-                x = 5 * spacing;
-                y = 2*spacing;
-                x += (spacing/2 * (row-6));
-                y += (spacing/2 * (col-2));
+                x = 5 * space;
+                x += space / 2;
+                y = 2*space;
+                y += (space/2 * (col-2));
                 return {x, y};
 
         }
         if (row === 8) row--;
-        x = (row - 1) * spacing;
-        y = col * spacing;
+        x = (row - 1) * space;
+        y = col * space;
         return {x, y};
 }
 
-// generate grid points
-for (let row = 0; row < rowSize; row++) {
-        for (let col = 0; col < colSize; col++) {
-                if (bad_point(row, col)) continue;
-                points.push(getPixelPostion(row, col));
+function drawGrid(space) {
+        // Define connection indices for lines
+        /* stores the line connections between points */
+        /* [[x1, y1, x2, y2],  [pixelPoint, pixelPoint]] */
+        const connections = [];
+        // Horizontal and vertical connections
+        /* draw the 5x5 square grid */
+        let startPoint, endPoint;
+        for (let i = 1; i <= 5; i++) {
+                /* horizontal lines */
+                startPoint = {x: i * space, y: 0};
+                endPoint = {x: i * space, y: 4 * space};
+                connections.push([startPoint, endPoint]);
+                /* vertical lines */
+                startPoint = {x: space, y: (i-1) * space};
+                endPoint = {x: 5 * space, y: (i-1) * space};
+                connections.push([startPoint, endPoint]);
         }
-}
-// console.log(points);
-// Define connection indices for lines
-const connections = [];
-// Horizontal and vertical connections
+        /* make the diagonal lines */
+        // forward
+        startPoint = {x: 3 * space, y: 0};    
+        endPoint = {x: 0, y: 3 * space};
+        connections.push([startPoint, endPoint]);
+        startPoint = {x: 5 * space, y: 0};    
+        endPoint = {x: space, y: 4 * space};
+        connections.push([startPoint, endPoint]);
+        startPoint = {x: 6 * space, y: space};
+        endPoint = {x: 3 * space, y: 4 * space};
+        connections.push([startPoint, endPoint]);
 
-for (let row = 0; row < 2; row++) {
-        for (let col = 1; col < colSize - 1; col++) {
-                if (bad_point(row, col)) continue;
-                const index = getPixelPostion(row, col);
-                if (!bad_point(row, col+1)) { // horizontal
-                        connections.push([index, getPixelPostion(row, col+1)]);
-                }
-                if (row === 1 && (col !== 2)) continue;
-                if (!bad_point(row+1, col)) { // vertical
-                        connections.push([index, getPixelPostion(row+1, col)]);
-                }
+
+        // backward
+        startPoint = {x: 3 * space, y: 0};
+        endPoint = {x: 6*space, y: 3 * space};
+        connections.push([startPoint, endPoint]);
+        startPoint = {x: 1 * space, y: 0};
+        endPoint = {x: 5 * space, y: 4 * space};
+        connections.push([startPoint, endPoint]);
+        startPoint = {x: 0, y: space};
+        endPoint = {x: 3 * space, y: 4 * space};
+        connections.push([startPoint, endPoint]);
+
+        /* make the tiny lines */
+        startPoint = {x: 0, y : space}
+        endPoint = {x: 0, y: 3 * space};
+        connections.push([startPoint, endPoint]);
+
+        startPoint = {x: space/2, y : space + space / 2}
+        endPoint = {x: space/2, y : 2 * space + space / 2}
+        connections.push([startPoint, endPoint]);
+
+        startPoint = getPixelPostion(space, 0, 2);
+        endPoint = getPixelPostion(space, 2, 2);
+        connections.push([startPoint, endPoint]);
+
+        startPoint = getPixelPostion(space, 7, 1);
+        endPoint = getPixelPostion(space, 7, 3);
+        connections.push([startPoint, endPoint]);
+
+        startPoint = getPixelPostion(space, 8, 1);
+        endPoint = getPixelPostion(space, 8, 3);
+        connections.push([startPoint, endPoint]);
+
+        startPoint = getPixelPostion(space, 6, 2);
+        endPoint = getPixelPostion(space, 8, 2);
+        connections.push([startPoint, endPoint]);
+
+        // Draw lines
+        for (const [i, j] of connections) {
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", i.y);
+                line.setAttribute("y1", i.x);
+                line.setAttribute("x2", j.y);
+                line.setAttribute("y2", j.x);
+                line.setAttribute("stroke", "#3d91a0ff");
+                line.setAttribute("stroke-width", 2);
+                board.appendChild(line);
         }
+
+
 }
-
-connections.push([getPixelPostion(1, 1), getPixelPostion(2, 2)]);
-connections.push([getPixelPostion(1, 3), getPixelPostion(2, 2)]);
-for (let row = 2; row < rowSize; row++) {
-        for (let col = 0; col < colSize; col++) {
-                if (bad_point(row, col)) continue;
-                const index = getPixelPostion(row, col);
-                if (!bad_point(row, col+1)) { // horizontal
-                        connections.push([index, getPixelPostion(row, col+1)]);
-                }
-                if (row === 6 && (col !== 2)) continue;
-                if (!bad_point(row+1, col)) { // vertical
-                        connections.push([index, getPixelPostion(row+1, col)]);
-                }
-                if (row > 6) continue;
-                if ((row + col) % 2 === 0) {
-                        if (!bad_point(row+1, col+1)) {
-                                console.log(row, col);
-                                connections.push([index, getPixelPostion(row+1, col+1)]);
-                        }
-
-                        // Diagonal (down-left)
-                        if (!bad_point(row+1, col-1)) {
-                                console.log(row, col);
-                                connections.push([index, getPixelPostion(row+1, col-1)]);
-                        }
-                }
-        }
-}
-
-// Draw lines
-for (const [i, j] of connections) {
-
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("x1", i.y);
-        line.setAttribute("y1", i.x);
-        line.setAttribute("x2", j.y);
-        line.setAttribute("y2", j.x);
-        line.setAttribute("stroke", "#000");
-        line.setAttribute("stroke-width", 2);
-        svg.appendChild(line);
-}
+drawGrid(spacing);

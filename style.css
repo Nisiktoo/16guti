@@ -4,20 +4,16 @@ body {
         background: #f4f4f4;
         margin: 0;
         padding: 0;
-      }
-      
-      #board-container {
-        width: 90vw;
-        max-width: 80vmin;
+}
+svg {
+}
+#board-container {
         margin: auto;
-        aspect-ratio: 1 / 1;
-      }
-      
-      #board {
-        width: 100%;
-        height: 100%;
-        border: 2px solid #333;
+        /* aspect-ratio: 1 / 1; */
+}
+
+#board {
         background-color: white;
-        padding: 10%;
-      }
-      
+        /* padding: 10%; */
+        /* border: 1px solid #333; */
+}
