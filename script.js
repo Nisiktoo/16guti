@@ -9,7 +9,7 @@ const colSize = 5;
 const attrWidth = Number(board.getAttribute("width")) || 500;
 let boardSize = attrWidth;
 
-const circleRadius = 8;
+let circleRadius = 15;
 const color = ["red", "blue", "transparent"];
 
 // Responsive SVG via viewBox
@@ -652,4 +652,35 @@ bgClearBtn?.addEventListener("click", () => {
         if (bgFileInput) bgFileInput.value = "";
 });
 
-// ...existing code...
+const increaseRadiusBtn = document.getElementById("increase-guti-radius");
+
+increaseRadiusBtn?.addEventListener("click", () => {
+        // Increase radius by 2px, max 40px
+        let newRadius = Math.min(circleRadius + 1, 30);
+        // if (newRadius === circleRadius) return;
+        // Update global radius
+        circleRadius = newRadius;
+        // Update all guti circles
+        for (let r = 0; r < gutis.length; r++) {
+                for (let c = 0; c < (gutis[r]?.length || 0); c++) {
+                        const g = gutis[r][c];
+                        if (g) g.el.setAttribute("r", newRadius);
+                }
+        }
+});
+const decreaseRadiusBtn = document.getElementById("decrease-guti-radius");
+
+decreaseRadiusBtn?.addEventListener("click", () => {
+        // Decrease radius by 1px, min 8px
+        let newRadius = Math.max(circleRadius - 1, 8);
+        // if (newRadius === circleRadius) return;
+        // Update global radius
+        circleRadius = newRadius;
+        // Update all guti circles
+        for (let r = 0; r < gutis.length; r++) {
+                for (let c = 0; c < (gutis[r]?.length || 0); c++) {
+                        const g = gutis[r][c];
+                        if (g) g.el.setAttribute("r", newRadius);
+                }
+        }
+});

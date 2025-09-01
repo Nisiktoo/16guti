@@ -75,10 +75,12 @@ body {
         cursor: pointer;
         transition: stroke-width 120ms ease;
 }
+
 .selected {
         /* stroke color comes from the CSS variable; fallback to semi-transparent black */
-        stroke: var(--selected-stroke, rgba(0,0,0,0.45));
-        stroke-width: 14px;               /* keep your large hit/visual stroke */
+        stroke: var(--selected-stroke, rgba(0, 0, 0, 0.45));
+        stroke-width: 14px;
+        /* keep your large hit/visual stroke */
         vector-effect: non-scaling-stroke;
         transform: scale(1);
 }
