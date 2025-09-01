@@ -6,7 +6,7 @@ const rowSize = 9;
 const colSize = 5;
 
 // Internal units from width attribute; CSS scales via viewBox
-const attrWidth = Number(board.getAttribute("width")) || 500;
+const attrWidth = Number(board.getAttribute("width")) || 600;
 let boardSize = attrWidth;
 
 let circleRadius = 15;
@@ -16,7 +16,7 @@ const color = ["red", "blue", "transparent"];
 const vbWidth = boardSize + 5 * circleRadius;
 const vbHeight = (boardSize * 3) / 2 + 5 * circleRadius;
 board.setAttribute("viewBox", `0 0 ${vbWidth} ${vbHeight}`);
-board.setAttribute("preserveAspectRatio", "xMidYMid meet");
+board.setAttribute("preserveAspectRatio", "none"); // allow vertical stretch
 board.removeAttribute("width");
 board.removeAttribute("height");
 
