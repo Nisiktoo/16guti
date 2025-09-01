@@ -246,3 +246,77 @@ body {
         white-space: nowrap;
         border: 0;
 }
+
+
+/* ========= Active player highlight (minimal additions) ========= */
+
+.player-status {
+        /* allow an overridable player color from JS or color input */
+        --player-color: #ff4d4f;
+        --player-glow-rgba: rgba(255, 77, 79, 0.18);
+        position: relative;
+        transition: box-shadow .18s ease, transform .12s ease;
+}
+
+/* sensible defaults for each player (no JS needed) */
+.player1 { --player-color: #ff4d4f; --player-glow-rgba: rgba(255, 77, 79, 0.18); }
+.player2 { --player-color: #3f79ff; --player-glow-rgba: rgba(63, 121, 255, 0.18); }
+
+/* active card: glow + slight lift */
+.player-status.active {
+        box-shadow: 0 8px 30px var(--player-glow-rgba), 0 2px 8px rgba(0,0,0,0.06);
+        transform: translateY(-4px);
+        z-index: 5;
+}
+
+/* turn badge: hidden by default, shown when active */
+.player-status .turn-badge {
+        position: absolute;
+        left: 50%;               /* center horizontally */
+        transform: translateX(-50%);  /* account for element width */
+        top: -15px;              /* position above the player status bar */
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 30;
+        color: #04243a;
+        display: none;
+        background: rgba(255,255,255,0.9);
+        border: 1px solid rgba(0,0,0,0.06);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+/* show badge and style when active */
+.player-status.active .turn-badge {
+        display: inline-block;
+        background: linear-gradient(90deg, var(--player-color), color-mix(in srgb, var(--player-color) 70%, white));
+        color: #fff;
+        border: none;
+        box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+}
+
+/* pulse animation for the chip */
+.player-status .chip {
+        transition: box-shadow .18s ease, transform .18s ease;
+}
+
+/* active chip pulses slightly */
+.player-status.active .chip {
+        animation: chip-pulse 1200ms infinite;
+}
+
+@keyframes chip-pulse {
+        0%   { box-shadow: 0 6px 14px rgba(0,0,0,0.08), 0 0 0 0 var(--player-glow-rgba); transform: scale(1); }
+        50%  { box-shadow: 0 10px 30px rgba(0,0,0,0.12), 0 0 12px var(--player-glow-rgba); transform: scale(1.05); }
+        100% { box-shadow: 0 6px 14px rgba(0,0,0,0.08), 0 0 0 0 var(--player-glow-rgba); transform: scale(1); }
+}
+
+/* accessible small-screen tweak for badge */
+@media (max-width: 420px) {
+        .player-status .turn-badge {
+                right: 8px;
+                top: 8px;
+                padding: 5px 8px;
+                font-size: 11px;
+        }
+}

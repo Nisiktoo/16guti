@@ -418,6 +418,7 @@ function handleGutiClick(e) {
                 playSound("move"); // simple move
                 currentState = 0;
                 currentTurn = 1 - currentTurn;
+                window.uiPlayers.setActivePlayerUI(currentTurn);
                 removeFromSelected(selectedGuti);
                 selectedGuti = null;
                 totalMoves++;
@@ -434,6 +435,7 @@ function handleGutiClick(e) {
                 if (!canCapture(selectedGuti)) {
                         currentState = 0;
                         currentTurn = 1 - currentTurn;
+                        window.uiPlayers.setActivePlayerUI(currentTurn);
                         removeFromSelected(selectedGuti);
                         // selectedGuti.el.classList.remove("selected");
                         selectedGuti = null;
@@ -495,6 +497,7 @@ function resetGame() {
         currentTurn = Math.round(Math.random()) % 2;
         currentState = 0;
         totalMoves = 0;
+        score = [0, 0];
 
         for (let i = 0; i < 4; i++) {
                 for (let j = 0; j < colSize; j++) {
@@ -684,3 +687,89 @@ decreaseRadiusBtn?.addEventListener("click", () => {
                 }
         }
 });
+
+
+// color-sync + active-player UI helpers
+// 8-space indentation preserved
+
+(function () {
+        // DOM refs
+        const playerStatusEls = document.querySelectorAll(".player-status");
+        const colorInput0 = document.getElementById("player0-color");
+        const colorInput1 = document.getElementById("player1-color");
+
+        // Apply current color values to the card CSS variables
+        function applyPlayerColors() {
+                const el0 = document.querySelector('.player-status[data-player="0"]');
+                const el1 = document.querySelector('.player-status[data-player="1"]');
+                if (el0 && colorInput0) el0.style.setProperty("--player-color", colorInput0.value);
+                if (el1 && colorInput1) el1.style.setProperty("--player-color", colorInput1.value);
+        }
+
+        // Wire color inputs to live-update the UI
+        function wireColorInputs() {
+                if (colorInput0) {
+                        colorInput0.addEventListener("input", () => {
+                                const el = document.querySelector('.player-status[data-player="0"]');
+                                if (el) el.style.setProperty("--player-color", colorInput0.value);
+                        }, { passive: true });
+                }
+                if (colorInput1) {
+                        colorInput1.addEventListener("input", () => {
+                                const el = document.querySelector('.player-status[data-player="1"]');
+                                if (el) el.style.setProperty("--player-color", colorInput1.value);
+                        }, { passive: true });
+                }
+        }
+
+        // Toggle active UI for a player index (0 or 1)
+        function setActivePlayerUI(index) {
+                playerStatusEls.forEach(ps => ps.classList.remove("active"));
+                const active = document.querySelector(`.player-status[data-player="${index}"]`);
+                if (active) active.classList.add("active");
+
+                // update turn badge text visibility (optional customization)
+                playerStatusEls.forEach(ps => {
+                        const badge = ps.querySelector(".turn-badge");
+                        if (!badge) return;
+                        badge.textContent = ps.classList.contains("active") ? "😄" : "";
+                });
+
+                // if you track currentTurn globally, keep it in sync
+                if (typeof window.currentTurn !== "undefined") {
+                        window.currentTurn = index;
+                }
+        }
+
+        // Public bootstrap: call on load
+        function initPlayerUI() {
+                applyPlayerColors();
+                wireColorInputs();
+
+                // Initialize active player using global currentTurn (fall back to 0)
+                const start = currentTurn;
+                setActivePlayerUI(start);
+
+                // Optional: allow clicking the card to force-select (useful for testing)
+                playerStatusEls.forEach(ps => {
+                        ps.addEventListener("click", () => {
+                                const idx = Number(ps.getAttribute("data-player"));
+                                setActivePlayerUI(idx);
+                        });
+                });
+        }
+
+        // expose the API so your game logic can call it when turns change
+        window.uiPlayers = {
+                setActivePlayerUI,
+                applyPlayerColors
+        };
+
+        // run after DOM loaded (if script is at bottom this still safe)
+        if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", initPlayerUI);
+        } else {
+                initPlayerUI();
+        }
+})();
+window.uiPlayers.setActivePlayerUI(currentTurn);

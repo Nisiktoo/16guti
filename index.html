@@ -13,16 +13,17 @@
                 <h1>16 Guti</h1>
 
                 <!-- Player 0 (top) -->
-                <div class="player-status player1">
+                <div class="player-status player1" data-player="0" aria-live="polite">
                         <div class="status-info">
-                                <label class="color-picker">
+                                <label class="color-picker" title="Choose Player 0 color">
                                         <input type="color" id="player0-color" value="#ff4d4f" />
                                 </label>
                                 <span id="player0-score">Score: 0</span>
                         </div>
+
+                        <!-- TURN BADGE (appears when active) -->
+                        <div class="turn-badge" aria-hidden="true">Your turn</div>
                 </div>
-
-
                 <div id="board-container">
                         <svg id="board" width="500" height="750">
                                 <g id="layer"></g>
@@ -30,14 +31,18 @@
                 </div>
 
                 <!-- Player 1 (bottom) -->
-                <div class="player-status player2">
+                <div class="player-status player2" data-player="1" aria-live="polite">
                         <div class="status-info">
-                                <label class="color-picker">
+                                <label class="color-picker" title="Choose Player 1 color">
                                         <input type="color" id="player1-color" value="#3f79ff" />
                                 </label>
                                 <span id="player1-score">Score: 0</span>
                         </div>
+
+                        <!-- TURN BADGE (appears when active) -->
+                        <div class="turn-badge" aria-hidden="true"> <img src="./icons/brain.png" alt="Brain icon"></div>
                 </div>
+
 
                 <!-- NEW: Board background controls -->
                 <div class="board-style-controls">
@@ -67,7 +72,7 @@
                                         <path
                                                 d="M21 19V5a2 2 0 0 0-2-2H5C3.9 3 3 3.9 3 5v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2ZM8.5 7A1.5 1.5 0 1 1 7 8.5 1.5 1.5 0 0 1 8.5 7ZM6 18l5-6 3.5 4.5L17 13l4 5H6Z" />
                                 </svg>
-                                <input type="url" id="board-bg-image-url" placeholder="url.com/pic.jpg" />
+                                <input type="url" id="board-bg-image-url" placeholder="url" />
                         </div>
 
                         <!-- Upload icon triggers hidden file input -->
