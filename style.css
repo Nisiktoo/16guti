@@ -6,7 +6,7 @@
 .game-container {
         display: flex;
         flex-direction: column;
-        align-items: center;
+        align-items: stretch;
         gap: 10px;
         /* spacing between status bars and board */
         width: min(90vw, var(--board-max));
@@ -54,21 +54,12 @@ body {
 }
 
 #board-container {
-        margin: auto;
-        display: block;
-        width: 100%;
-        /* fill game-container */
-        padding: 10px;
-}
-
-#board {
-        background-color: #fff;
-        width: 100%;
-        /* match game-container via container */
-        height: auto;
-        display: block;
-        margin: 0 auto;
-        padding: 0;
+  margin: 0;                 /* avoid centering offsets */
+  display: block;
+  background-color: #ffffff;
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;    /* match player-status */
 }
 
 /* Pieces */
@@ -88,3 +79,6 @@ body {
                 height: auto;
         }
 }
+
+/* Optional: make all elements border-box */
+*, *::before, *::after { box-sizing: border-box; }
