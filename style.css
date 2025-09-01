@@ -49,17 +49,25 @@ body {
 
 .status-info {
         width: 100%;
-        text-align: center;
+        display: flex;
+        /* lay out color picker and score nicely */
+        align-items: center;
+        justify-content: space-between;
         font-weight: 600;
 }
 
 #board-container {
-  margin: 0;                 /* avoid centering offsets */
-  display: block;
-  background-color: #ffffff;
-  width: 100%;
-  padding: 10px;
-  box-sizing: border-box;    /* match player-status */
+        margin: 0;
+        /* avoid centering offsets */
+        display: block;
+        background-color: #ffffff;
+        width: 100%;
+        padding: 10px;
+        box-sizing: border-box;
+        /* match player-status */
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
 }
 
 /* Pieces */
@@ -67,10 +75,12 @@ body {
         cursor: pointer;
         transition: stroke-width 120ms ease;
 }
-
 .selected {
-        stroke: #000000;
-        stroke-width: 16px;
+        /* stroke color comes from the CSS variable; fallback to semi-transparent black */
+        stroke: var(--selected-stroke, rgba(0,0,0,0.45));
+        stroke-width: 14px;               /* keep your large hit/visual stroke */
+        vector-effect: non-scaling-stroke;
+        transform: scale(1);
 }
 
 @media (max-width: 480px) {
@@ -81,4 +91,156 @@ body {
 }
 
 /* Optional: make all elements border-box */
-*, *::before, *::after { box-sizing: border-box; }
+*,
+*::before,
+*::after {
+        box-sizing: border-box;
+}
+
+/* Optional: small tweaks to the label */
+.color-picker {
+        position: relative;
+        display: inline-block;
+        /* override previous inline-flex */
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        padding: 3px;
+        /* ring thickness */
+        background: conic-gradient(#ff5f6d, #ffc371, #f9f871, #a1ffce, #64b3f4, #c2e9fb, #b19cd9, #ff5f6d);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+        transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.color-picker:hover {
+        transform: translateY(-1px) scale(1.03);
+}
+
+.color-picker:active {
+        transform: scale(0.98);
+}
+
+.color-picker input[type="color"] {
+        position: absolute;
+        inset: 4px;
+        /* reveal gradient ring */
+        width: auto;
+        height: auto;
+        border: none;
+        padding: 0;
+        border-radius: 50%;
+        background: none;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+        cursor: pointer;
+}
+
+/* Make the inner swatch perfectly round across engines */
+.color-picker input[type="color"]::-webkit-color-swatch-wrapper {
+        padding: 0;
+}
+
+.color-picker input[type="color"]::-webkit-color-swatch {
+        border: none;
+        border-radius: 50%;
+}
+
+.color-picker input[type="color"]::-moz-color-swatch {
+        border: none;
+        border-radius: 50%;
+}
+
+/* Board background controls */
+.board-style-controls {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 8px 10px;
+        background: #fafafa;
+        border-radius: 8px;
+        border: 1px solid #e9e9e9;
+}
+
+.icon-control,
+.icon-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        cursor: pointer;
+        transition: transform .12s ease, background .12s ease, box-shadow .12s ease;
+}
+
+.icon-control:hover,
+.icon-button:hover {
+        background: #f7f7f7;
+        transform: translateY(-1px);
+}
+
+.icon-control:active,
+.icon-button:active {
+        transform: translateY(0);
+}
+
+.icon {
+        width: 22px;
+        height: 22px;
+        fill: #333;
+}
+
+.visually-hidden-input {
+        position: absolute !important;
+        opacity: 0 !important;
+        width: 1px !important;
+        height: 1px !important;
+        overflow: hidden !important;
+        clip: rect(0 0 0 0) !important;
+        white-space: nowrap !important;
+        pointer-events: none !important;
+}
+
+/* URL input with leading icon */
+.url-control {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 8px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        background: #fff;
+        flex: 1;
+        min-width: 0;
+}
+
+.url-control .icon {
+        width: 18px;
+        height: 18px;
+        fill: #666;
+}
+
+.url-control input[type="url"] {
+        border: none;
+        outline: none;
+        min-width: 140px;
+        width: 100%;
+        font: inherit;
+}
+
+/* Screen-reader only text */
+.sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 1px, 1px);
+        white-space: nowrap;
+        border: 0;
+}

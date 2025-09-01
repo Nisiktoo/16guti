@@ -329,7 +329,8 @@ class Guti {
    8) Game mechanics
    ========================= */
 function swapGuti(currentGuti, targetGuti) {
-        currentGuti.el.classList.remove("selected");
+        removeFromSelected(currentGuti)
+        // currentGuti.el.classList.remove("selected");
         targetGuti.player = currentGuti.player;
         currentGuti.player = 2;
         currentGuti.updateColor();
@@ -347,7 +348,6 @@ function canCapture(currentGuti) {
         }
         return false;
 }
-
 function moveGuti(currentGuti, targetGuti) {
         if (targetGuti.player !== 2) return 0;
 
@@ -374,10 +374,22 @@ function moveGuti(currentGuti, targetGuti) {
         swapGuti(currentGuti, targetGuti);
         return 2; // capture
 }
-
 /* =========================
    9) Events
    ========================= */
+
+function addToSelected(guti) {
+        // previously: guti.el.classList.add("selected");
+        guti.el.classList.add("selected");
+        // set CSS variable to match the guti fill color
+        const fill = guti.el.getAttribute("fill") || "transparent";
+        guti.el.style.setProperty("--selected-stroke", fill);
+}
+function removeFromSelected(guti) {
+        guti.el.classList.remove("selected");
+        guti.el.style.removeProperty("--selected-stroke");
+}
+
 function handleGutiClick(e) {
         const guti = this;
         e?.stopPropagation?.();
@@ -388,12 +400,13 @@ function handleGutiClick(e) {
                 if (guti.player > 1) return;
                 currentState = 1;
                 selectedGuti = guti;
-                guti.el.classList.add("selected");
+                addToSelected(guti);
         } else if (currentState === 1) {
                 if (selectedGuti.player === guti.player) {
-                        selectedGuti.el.classList.remove("selected");
+                        removeFromSelected(selectedGuti);
                         selectedGuti = guti;
                         selectedGuti.el.classList.add("selected");
+                        addToSelected(selectedGuti);
                         return;
                 }
         }
@@ -402,36 +415,38 @@ function handleGutiClick(e) {
         if (capturedGuti === 0) return;
 
         if (capturedGuti === 1) {
-    playSound("move"); // simple move
-    currentState = 0;
-    currentTurn = 1 - currentTurn;
-    selectedGuti.el.classList.remove("selected");
-    selectedGuti = null;
-    totalMoves++;
-    updateScoreboard();
-  } else {
-    playSound("capture", 0.4); // capture move
-    score[currentTurn]++;
-    currentState = 2;
-    selectedGuti = guti;
-    selectedGuti.el.classList.add("selected");
-    totalMoves++;
-    updateScoreboard();
+                playSound("move"); // simple move
+                currentState = 0;
+                currentTurn = 1 - currentTurn;
+                removeFromSelected(selectedGuti);
+                selectedGuti = null;
+                totalMoves++;
+                updateScoreboard();
+        } else {
+                playSound("capture", 0.4); // capture move
+                score[currentTurn]++;
+                currentState = 2;
+                selectedGuti = guti;
+                addToSelected(selectedGuti);
+                totalMoves++;
+                updateScoreboard();
 
-    if (!canCapture(selectedGuti)) {
-      currentState = 0;
-      currentTurn = 1 - currentTurn;
-      selectedGuti.el.classList.remove("selected");
-      selectedGuti = null;
-      updateScoreboard();
-    }
-  }
+                if (!canCapture(selectedGuti)) {
+                        currentState = 0;
+                        currentTurn = 1 - currentTurn;
+                        removeFromSelected(selectedGuti);
+                        // selectedGuti.el.classList.remove("selected");
+                        selectedGuti = null;
+                        updateScoreboard();
+                }
+        }
 }
 
 // Clear selection when clicking outside any guti (unless in capture chain)
 board.addEventListener("click", () => {
         if (!selectedGuti || currentState === 2) return;
-        selectedGuti.el.classList.remove("selected");
+        removeFromSelected(selectedGuti);
+        // selectedGuti.el.classList.remove("selected");
         selectedGuti = null;
         currentState = 0;
 });
@@ -532,3 +547,109 @@ function playSound(key, volume = 0.7) {
 loadSound("move", "move.mp3");
 loadSound("capture", "capture.mp3");
 loadSound("victory", "victory.mp3");
+
+
+// NEW: color picker refs
+const p0ColorInput = document.getElementById("player0-color");
+const p1ColorInput = document.getElementById("player1-color");
+
+// Apply saved or initial picker colors to the game palette
+(function initPlayerColors() {
+        const savedP0 = localStorage.getItem("player0-color");
+        const savedP1 = localStorage.getItem("player1-color");
+        if (p0ColorInput) {
+                if (savedP0) p0ColorInput.value = savedP0;
+                color[0] = p0ColorInput.value || color[0];
+        }
+        if (p1ColorInput) {
+                if (savedP1) p1ColorInput.value = savedP1;
+                color[1] = p1ColorInput.value || color[1];
+        }
+})();
+
+// Helper to re-paint all pieces after a color change
+function updateAllPieceColors() {
+        for (let r = 0; r < gutis.length; r++) {
+                for (let c = 0; c < (gutis[r]?.length || 0); c++) {
+                        const g = gutis[r][c];
+                        if (g) g.updateColor();
+                }
+        }
+}
+
+// Listen for color changes
+p0ColorInput?.addEventListener("input", (e) => {
+        color[0] = e.target.value;
+        localStorage.setItem("player0-color", color[0]);
+        updateAllPieceColors();
+});
+p1ColorInput?.addEventListener("input", (e) => {
+        color[1] = e.target.value;
+        localStorage.setItem("player1-color", color[1]);
+        updateAllPieceColors();
+});
+
+// ...existing code...
+// Build and render
+updateAllPieceColors(); // ensure initial picker colors are applied
+// ...existing code...
+// ...existing code...
+// ...existing code...
+// ...existing code...
+
+// NEW: board background controls
+const boardContainer = document.getElementById("board-container");
+const bgColorInput = document.getElementById("board-bg-color");
+const bgUrlInput = document.getElementById("board-bg-image-url");
+const bgFileInput = document.getElementById("board-bg-file");
+const bgClearBtn = document.getElementById("board-bg-clear");
+
+// Init from saved values
+(function initBoardBackground() {
+        const savedColor = localStorage.getItem("board-bg-color");
+        const savedUrl = localStorage.getItem("board-bg-image-url");
+        if (savedColor) {
+                boardContainer.style.backgroundColor = savedColor;
+                if (bgColorInput) bgColorInput.value = savedColor;
+        }
+        if (savedUrl) {
+                boardContainer.style.backgroundImage = `url("${savedUrl}")`;
+                if (bgUrlInput) bgUrlInput.value = savedUrl;
+        }
+})();
+
+// Listeners
+bgColorInput?.addEventListener("input", (e) => {
+        const val = e.target.value;
+        boardContainer.style.backgroundColor = val;
+        localStorage.setItem("board-bg-color", val);
+});
+
+bgUrlInput?.addEventListener("change", (e) => {
+        const url = (e.target.value || "").trim();
+        if (url) {
+                boardContainer.style.backgroundImage = `url("${url}")`;
+                localStorage.setItem("board-bg-image-url", url);
+        }
+});
+
+bgFileInput?.addEventListener("change", (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+                const dataUrl = reader.result;
+                boardContainer.style.backgroundImage = `url("${dataUrl}")`;
+                // Not persisted to localStorage to avoid large storage usage
+        };
+        reader.readAsDataURL(file);
+});
+
+bgClearBtn?.addEventListener("click", () => {
+        boardContainer.style.backgroundImage = "none";
+        localStorage.removeItem("board-bg-image-url");
+        if (bgUrlInput) bgUrlInput.value = "";
+        if (bgFileInput) bgFileInput.value = "";
+});
+
+// ...existing code...
