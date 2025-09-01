@@ -23,9 +23,211 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 const PADDING = circleRadius + 1;
 const layer = document.getElementById("layer");
 layer.setAttribute("transform", `translate(${PADDING}, ${PADDING})`);
-
 const spacing = boardSize / (colSize - 1);
 const diagonalSpacing = Math.sqrt(2) * spacing
+
+/* make a graph of the edges */
+const EDGES = [ [[], [], [], [], []],
+                [[], [], [], [], []],
+                [[], [], [], [], []],
+                [[], [], [], [], []],
+                [[], [], [], [], []],
+                [[], [], [], [], []],
+                [[], [], [], [], []],
+                [[], [], [], [], []],
+                [[], [], [], [], []]
+               ];
+
+/* stores the path of length 2 */
+const PATHS = [ [[], [], [], [], []],
+                [[], [], [], [], []],
+                [[], [], [], [], []],
+                [[], [], [], [], []],
+                [[], [], [], [], []],
+                [[], [], [], [], []],
+                [[], [], [], [], []],
+                [[], [], [], [], []],
+                [[], [], [], [], []]
+               ];
+
+function buildEdges() {
+        const directions = [
+                {dr: 1, dc: 0}, {dr: -1, dc: 0},
+                {dr: 0, dc: 1}, {dr: 0, dc: -1}
+        ];
+        const diagonalDirections = [
+                {dr: 1, dc: 1}, {dr: 1, dc: -1},
+                {dr: -1, dc: 1}, {dr: -1, dc: -1}
+        ];
+        for (let i = 0; i < rowSize; i++) {
+                for (let j = 0; j < colSize; j++) {
+                        if (badPoint(i, j)) continue;
+                        for (const {dr, dc} of directions) {
+                                const ni = i + dr;
+                                const nj = j + dc;
+                                console.log(ni, nj);
+                                if (!badPoint(ni, nj)) {
+                                        EDGES[i][j].push([ni, nj]);
+                                        console.log("stored");
+                                }
+                        }
+                        if ((i + j) % 2 === 0) {
+                                for (const {dr, dc} of diagonalDirections) {
+                                        const ni = i + dr;
+                                        const nj = j + dc;
+                                        if (!badPoint(ni, nj)) {
+                                                EDGES[i][j].push([ni, nj]);
+                                        }
+                                }
+                        }
+                }
+        }
+        /* delete some edges */
+        // Helper to find index of an edge by value
+        function findEdgeIndex(arr, edge) {
+                return arr.findIndex(e => e[0] === edge[0] && e[1] === edge[1]);
+        }
+        let idx;
+        idx = findEdgeIndex(EDGES[1][1], [2, 0]);
+        if (idx !== -1) EDGES[1][1].splice(idx, 1);
+        idx = findEdgeIndex(EDGES[1][1], [2, 1]);
+        if (idx !== -1) EDGES[1][1].splice(idx, 1);
+        idx = findEdgeIndex(EDGES[1][1], [0, 2]);
+        if (idx !== -1) EDGES[1][1].splice(idx, 1);
+        idx = findEdgeIndex(EDGES[0][2], [1, 1]);
+        if (idx !== -1) EDGES[0][2].splice(idx, 1);
+        idx = findEdgeIndex(EDGES[0][2], [1, 3]);
+        if (idx !== -1) EDGES[0][2].splice(idx, 1);
+
+        idx = findEdgeIndex(EDGES[1][3], [0, 2]);
+        if (idx !== -1) EDGES[1][3].splice(idx, 1);
+        idx = findEdgeIndex(EDGES[1][3], [2, 3]);
+        if (idx !== -1) EDGES[1][3].splice(idx, 1);
+        idx = findEdgeIndex(EDGES[1][3], [2, 4]);
+        if (idx !== -1) EDGES[1][3].splice(idx, 1);
+
+
+        idx = findEdgeIndex(EDGES[2][0], [1, 1]);
+        if (idx !== -1) EDGES[2][0].splice(idx, 1);
+
+        idx = findEdgeIndex(EDGES[2][1], [1, 1]);
+        if (idx !== -1) EDGES[2][1].splice(idx, 1);
+
+        idx = findEdgeIndex(EDGES[2][3], [1, 3]);
+        if (idx !== -1) EDGES[2][3].splice(idx, 1);
+
+        idx = findEdgeIndex(EDGES[2][4], [1, 3]);
+        if (idx !== -1) EDGES[2][4].splice(idx, 1);
+
+        idx = findEdgeIndex(EDGES[6][0], [7, 1]);
+        if (idx !== -1) EDGES[6][0].splice(idx, 1);
+
+        idx = findEdgeIndex(EDGES[6][1], [7, 1]);
+        if (idx !== -1) EDGES[6][1].splice(idx, 1);
+
+        idx = findEdgeIndex(EDGES[6][3], [7, 3]);
+        if (idx !== -1) EDGES[6][3].splice(idx, 1);
+
+        idx = findEdgeIndex(EDGES[6][4], [7, 3]);
+        if (idx !== -1) EDGES[6][4].splice(idx, 1);
+        
+        idx = findEdgeIndex(EDGES[7][1], [6, 0]);
+        if (idx !== -1) EDGES[7][1].splice(idx, 1);
+        idx = findEdgeIndex(EDGES[7][1], [6, 1]);
+        if (idx !== -1) EDGES[7][1].splice(idx, 1);
+        idx = findEdgeIndex(EDGES[7][1], [8, 2]);
+        if (idx !== -1) EDGES[7][1].splice(idx, 1);
+
+        idx = findEdgeIndex(EDGES[7][3], [6, 3]);
+        if (idx !== -1) EDGES[7][3].splice(idx, 1);
+        idx = findEdgeIndex(EDGES[7][3], [6, 4]);
+        if (idx !== -1) EDGES[7][3].splice(idx, 1);
+        idx = findEdgeIndex(EDGES[7][3], [8, 2]);
+        if (idx !== -1) EDGES[7][3].splice(idx, 1);
+
+        idx = findEdgeIndex(EDGES[8][2], [7, 1]);
+        if (idx !== -1) EDGES[8][2].splice(idx, 1);
+        idx = findEdgeIndex(EDGES[8][2], [7, 3]);
+        if (idx !== -1) EDGES[8][2].splice(idx, 1);
+}
+
+function buildPaths() {
+        for (let i = 0; i < rowSize; i++) {
+                for (let j = 0; j < colSize; j++) {
+                        if (badPoint(i, j)) continue;
+                        for (const [ni, nj] of EDGES[i][j]) {
+                                let nni = ni + (ni - i);
+                                let nnj = nj + (nj - j);
+                                if ( EDGES[ni][nj].some(arr => arr[0] === nni && arr[1] === nnj)) {
+                                        PATHS[i][j].push([[ni, nj], [nni, nnj]]);
+                                }
+                        }
+                }
+        }
+        /* special paths */
+        PATHS[0][1].push([[1, 1], [2, 2]]);
+        PATHS[0][3].push([[1, 3], [2, 2]]);
+        PATHS[2][2].push([[1, 1], [0, 1]]);
+        PATHS[2][2].push([[1, 3], [0, 3]]);
+
+        PATHS[8][1].push([[7, 1], [6, 2]]);
+        PATHS[6][2].push([[7, 1], [8, 1]]);
+        PATHS[8][3].push([[7, 3], [6, 2]]);
+        PATHS[6][2].push([[7, 3], [8, 3]]);
+}
+
+async function showPaths() {
+        for (let i = 0; i < rowSize; i++) {
+                for (let j = 0; j < colSize; j++) {
+                        if (badPoint(i, j)) continue;
+                        for (const [[, ], [nni, nnj]] of PATHS[i][j]) {
+                                let {x: x1, y: y1} = getPixelPostion(spacing, i, j);
+                                let {x: x2, y: y2} = getPixelPostion(spacing, nni, nnj);
+                                const line = document.createElementNS(SVG_NS, "line");
+                                console.log(x1, y1, x2, y2);
+                                line.setAttribute("x1", y1);
+                                line.setAttribute("y1", x1);
+                                line.setAttribute("x2", y2);
+                                line.setAttribute("y2", x2);
+                                line.setAttribute("stroke", "#ffeb3b");
+                                line.setAttribute("stroke-width", 5);
+                                line.setAttribute("stroke-linecap", "round");
+                                layer.appendChild(line);
+                                // Pause execution for 2 seconds before removing the line
+                                setTimeout(() => {
+                                                line.remove();
+                                }, 2000);
+
+                                // Block further code execution for 2 seconds
+                                await new Promise(resolve => setTimeout(resolve, 2000));
+                        }
+                }
+        }
+}
+async function showEdges() {   
+        for (let i = 0; i < rowSize; i++) {
+                for (let j = 0; j < colSize; j++) {
+                        if (badPoint(i, j)) continue;
+                        for (const [ni, nj] of EDGES[i][j]) {
+                                let { x: x1, y: y1 } = getPixelPostion(spacing, i, j);
+                                let { x: x2, y: y2 } = getPixelPostion(spacing, ni, nj);
+                                const line = document.createElementNS(SVG_NS, "line");
+                                line.setAttribute("x1", y1);
+                                line.setAttribute("y1", x1);
+                                line.setAttribute("x2", y2);
+                                line.setAttribute("y2", x2);
+                                line.setAttribute("stroke", "#4caf50");
+                                line.setAttribute("stroke-width", 3);
+                                line.setAttribute("stroke-linecap", "round");
+                                layer.appendChild(line);
+                                setTimeout(() => {
+                                        line.remove();
+                                }, 1000);
+                                await new Promise(resolve => setTimeout(resolve, 1000));
+                        }
+                }
+        }
+}
 
 let score = [0, 0];
 let currentTurn = 0;
@@ -123,89 +325,58 @@ function swapGuti(currentGuti, targetGuti) {
         targetGuti.updateColor();
 
 }
+let specialGutis = [{ row: 0, col: 1}, 
+                    { row: 0, col: 3},
+                    { row: 2, col: 2},
+                    { row: 6, col: 2},
+                    { row: 8, col: 1},
+                    { row: 8, col: 3}
+                ];
+function connectedByEdge(x1, y1, x2, y2) {
+        let dr = Math.abs(x1 - x2);
+        let dc = Math.abs(y1 - y2);
+        if (dr > 1 || dc > 1) return false;
+        if (badPoint(x1, y1) || badPoint(x2, y2)) return false;
+        const canMoveDiagonally = (x1 + y1) % 2 === 0;
 
-
+}
 function canCapture(currentGuti) {
         const { row, col } = currentGuti;
-        const canMoveDiagonally = (row + col) % 2 === 0;
-        const directions = [
-                { dr: 2, dc: 0 }, { dr: -2, dc: 0 },
-                { dr: 0, dc: 2 }, { dr: 0, dc: -2 },
-        ];
-        const diagonalDirections = [
-                { dr: 2, dc: 2 }, { dr: -2, dc: -2 },
-                { dr: 2, dc: -2 }, { dr: -2, dc: 2 }
-        ];
-
-        for (const { dr, dc } of directions) {
-                const targetRow = row + dr;
-                const targetCol = col + dc;
-                if (badPoint(targetRow, targetCol)) continue;
-
-                const middleGuti = gutis[row + dr / 2][col + dc / 2];
-                const targetGuti = gutis[targetRow][targetCol];
-                if (typeof middleGuti === 'undefined' || middleGuti === null) continue;
-                if (typeof targetGuti === 'undefined' || targetGuti === null) continue;
+        for (const [midG, endG] of PATHS[row][col]) {
+                let middleGuti = gutis[midG[0]][midG[1]];
+                let endGuti = gutis[endG[0]][endG[1]];
                 if (middleGuti.player === (1 - currentGuti.player) &&
-                        targetGuti.player === 2) {
+                        endGuti.player === 2) {
                         return true;
                 }
         }
-        if (canMoveDiagonally) {
-                for (const { dr, dc } of diagonalDirections) {
-                        const targetRow = row + dr;
-                        const targetCol = col + dc;
-                        if (badPoint(targetRow, targetCol)) continue;
-                        const middleGuti = gutis[row + dr / 2][col + dc / 2];
-                        const targetGuti = gutis[targetRow][targetCol];
-                        if (typeof middleGuti === 'undefined' || middleGuti === null) continue;
-                        if (typeof targetGuti === 'undefined' || targetGuti === null) continue;
-                        if (middleGuti.player === (1 - currentGuti.player) &&
-                                targetGuti.player === 2) {
-                                return true;
-                        }
-                }
-        }
-        return false;
-}
-
-
-function moveGuti(currentGuti, targetGuti) {
-        let middleGuti = null;
-        const canMoveDiagonally = (currentGuti.row + currentGuti.col) % 2 === 0;
-        let dr = Math.abs(currentGuti.row - targetGuti.row);
-        let dc = Math.abs(currentGuti.col - targetGuti.col);
-        let distance = dr + dc;
-        if (distance !== 1 && distance !== 2 && distance !== 4 || currentState === 0) return 0;
-        if (distance == 1) {
-                if (currentState == 2) return 0;
-                swapGuti(currentGuti, targetGuti);
-                return 1;
-        }
-
-
-        /* killing move */
-        if (dr == 2 || dc == 2) {
-                if (!canMoveDiagonally && (dr + dc) === 4) return 0;
-                let x = currentGuti.row + (targetGuti.row - currentGuti.row) / 2;
-                let y = currentGuti.col + (targetGuti.col - currentGuti.col) / 2;
-                middleGuti = gutis[x][y];
-                if (typeof middleGuti === 'undefined' || middleGuti === null) return 0;
-                if (middleGuti.player !== (1 - currentGuti.player)) return 0;
-                swapGuti(currentGuti, targetGuti);
-                middleGuti.player = 2;
-                middleGuti.updateColor();
-                return 2;
-        }
-
-        /* non-killing move */
-        if (currentState === 1) {
-                if (distance == 2 && !canMoveDiagonally) return 0;
-                swapGuti(currentGuti, targetGuti);
-                return 1;
-        }
         return 0;
+}
+function moveGuti(currentGuti, targetGuti) {
+        if (targetGuti.player !== 2) return 0;
+        let [ni, nj] = [targetGuti.row, targetGuti.col];
+        let [i, j] = [currentGuti.row, currentGuti.col];
+        let isEdge = EDGES[i][j].some(arr => arr[0] === ni && arr[1] === nj);
+        if (isEdge) {
+                if (currentState === 2) {
+                        return 0;
+                }
+                swapGuti(currentGuti, targetGuti);
+                return 1;
+        }
+        let pathIndex = PATHS[i][j].findIndex(path => path[1][0] === ni && path[1][1] === nj);
+        if (pathIndex == -1) return 0;
 
+        /* it's a killing move */
+        let [mi, mj] = PATHS[i][j][pathIndex][0];
+        let middleGuti = gutis[mi][mj];
+        if (middleGuti.player !== (1 - currentGuti.player)) {
+                return 0;
+        }
+        middleGuti.player = 2;
+        middleGuti.updateColor();
+        swapGuti(currentGuti, targetGuti);
+        return 2;
 }
 
 // Clear selection when clicking outside any guti
@@ -426,4 +597,7 @@ initializeGuti();
 
 // Initialize scoreboard UI at start
 updateScoreboard();
-
+buildEdges();
+buildPaths();
+// showPaths();
+// showEdges();
