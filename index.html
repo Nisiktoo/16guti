@@ -9,41 +9,28 @@
 </head>
 
 <body>
-        <h1>16 Guti</h1>
-        <div id="board-container">
-                <svg id="board" width="500" height="750">
-                        <g id="layer"></g>
-                </svg>
-        </div>
-        <div id="scoreboard-container">
-                <!-- New, styled scoreboard -->
-                <aside id="scoreboard" class="scoreboard">
-                        <div class="scoreboard-header">
-                                <span class="title">Scoreboard</span>
-                                <button id="reset-score" class="reset-btn" type="button"
-                                        aria-label="Reset score">Reset</button>
+        <div class="game-container">
+                <h1>16 Guti</h1>
+
+                <!-- Player 0 (top) -->
+                <div class="player-status player1">
+                        <div class="status-info">
+                                <span id="player0-score">Score: 0</span>
                         </div>
+                </div>
 
-                        <div class="players">
-                                <div class="player-card" data-player="0">
-                                        <span class="chip chip-red" aria-hidden="true"></span>
-                                        <div class="meta">
-                                                <div class="name">Player 1</div>
-                                                <div class="score"><span id="player1-score">0</span></div>
-                                        </div>
-                                </div>
+                <div id="board-container">
+                        <svg id="board" width="500" height="750">
+                                <g id="layer"></g>
+                        </svg>
+                </div>
 
-                                <div class="player-card" data-player="1">
-                                        <span class="chip chip-blue" aria-hidden="true"></span>
-                                        <div class="meta">
-                                                <div class="name">Player 2</div>
-                                                <div class="score"><span id="player2-score">0</span></div>
-                                        </div>
-                                </div>
+                <!-- Player 1 (bottom) -->
+                <div class="player-status player2">
+                        <div class="status-info">
+                                <span id="player1-score">Score: 0</span>
                         </div>
-
-                        <div id="turn-indicator" class="turn-indicator">Red’s turn</div>
-                </aside>
+                </div>
         </div>
         <script src="script.js"></script>
 </body>

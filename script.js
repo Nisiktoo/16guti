@@ -11,8 +11,8 @@ const circleRadius = 8;
 const color = ["red", "blue", "transparent"];
 
 // Make SVG responsive
-const vbWidth = boardSize + 4 * circleRadius;
-const vbHeight = (boardSize * 3) / 2 + 4 * circleRadius;
+const vbWidth = boardSize + 5 * circleRadius;
+const vbHeight = (boardSize * 3) / 2 + 5 * circleRadius;
 board.setAttribute("viewBox", `0 0 ${vbWidth} ${vbHeight}`);
 board.setAttribute("preserveAspectRatio", "xMidYMid meet");
 board.removeAttribute("width");
@@ -20,49 +20,49 @@ board.removeAttribute("height");
 
 // Use the <g id="layer"> created in index.html
 const SVG_NS = "http://www.w3.org/2000/svg";
-const PADDING = circleRadius + 1;
+const PADDING = circleRadius;
 const layer = document.getElementById("layer");
-layer.setAttribute("transform", `translate(${PADDING}, ${PADDING})`);
+layer.setAttribute("transform", `translate(${2.5 * PADDING}, ${2.2 * PADDING})`);
 const spacing = boardSize / (colSize - 1);
 const diagonalSpacing = Math.sqrt(2) * spacing
 
 /* make a graph of the edges */
-const EDGES = [ [[], [], [], [], []],
-                [[], [], [], [], []],
-                [[], [], [], [], []],
-                [[], [], [], [], []],
-                [[], [], [], [], []],
-                [[], [], [], [], []],
-                [[], [], [], [], []],
-                [[], [], [], [], []],
-                [[], [], [], [], []]
-               ];
+const EDGES = [[[], [], [], [], []],
+[[], [], [], [], []],
+[[], [], [], [], []],
+[[], [], [], [], []],
+[[], [], [], [], []],
+[[], [], [], [], []],
+[[], [], [], [], []],
+[[], [], [], [], []],
+[[], [], [], [], []]
+];
 
 /* stores the path of length 2 */
-const PATHS = [ [[], [], [], [], []],
-                [[], [], [], [], []],
-                [[], [], [], [], []],
-                [[], [], [], [], []],
-                [[], [], [], [], []],
-                [[], [], [], [], []],
-                [[], [], [], [], []],
-                [[], [], [], [], []],
-                [[], [], [], [], []]
-               ];
+const PATHS = [[[], [], [], [], []],
+[[], [], [], [], []],
+[[], [], [], [], []],
+[[], [], [], [], []],
+[[], [], [], [], []],
+[[], [], [], [], []],
+[[], [], [], [], []],
+[[], [], [], [], []],
+[[], [], [], [], []]
+];
 
 function buildEdges() {
         const directions = [
-                {dr: 1, dc: 0}, {dr: -1, dc: 0},
-                {dr: 0, dc: 1}, {dr: 0, dc: -1}
+                { dr: 1, dc: 0 }, { dr: -1, dc: 0 },
+                { dr: 0, dc: 1 }, { dr: 0, dc: -1 }
         ];
         const diagonalDirections = [
-                {dr: 1, dc: 1}, {dr: 1, dc: -1},
-                {dr: -1, dc: 1}, {dr: -1, dc: -1}
+                { dr: 1, dc: 1 }, { dr: 1, dc: -1 },
+                { dr: -1, dc: 1 }, { dr: -1, dc: -1 }
         ];
         for (let i = 0; i < rowSize; i++) {
                 for (let j = 0; j < colSize; j++) {
                         if (badPoint(i, j)) continue;
-                        for (const {dr, dc} of directions) {
+                        for (const { dr, dc } of directions) {
                                 const ni = i + dr;
                                 const nj = j + dc;
                                 console.log(ni, nj);
@@ -72,7 +72,7 @@ function buildEdges() {
                                 }
                         }
                         if ((i + j) % 2 === 0) {
-                                for (const {dr, dc} of diagonalDirections) {
+                                for (const { dr, dc } of diagonalDirections) {
                                         const ni = i + dr;
                                         const nj = j + dc;
                                         if (!badPoint(ni, nj)) {
@@ -130,7 +130,7 @@ function buildEdges() {
 
         idx = findEdgeIndex(EDGES[6][4], [7, 3]);
         if (idx !== -1) EDGES[6][4].splice(idx, 1);
-        
+
         idx = findEdgeIndex(EDGES[7][1], [6, 0]);
         if (idx !== -1) EDGES[7][1].splice(idx, 1);
         idx = findEdgeIndex(EDGES[7][1], [6, 1]);
@@ -158,7 +158,7 @@ function buildPaths() {
                         for (const [ni, nj] of EDGES[i][j]) {
                                 let nni = ni + (ni - i);
                                 let nnj = nj + (nj - j);
-                                if ( EDGES[ni][nj].some(arr => arr[0] === nni && arr[1] === nnj)) {
+                                if (EDGES[ni][nj].some(arr => arr[0] === nni && arr[1] === nnj)) {
                                         PATHS[i][j].push([[ni, nj], [nni, nnj]]);
                                 }
                         }
@@ -180,9 +180,9 @@ async function showPaths() {
         for (let i = 0; i < rowSize; i++) {
                 for (let j = 0; j < colSize; j++) {
                         if (badPoint(i, j)) continue;
-                        for (const [[, ], [nni, nnj]] of PATHS[i][j]) {
-                                let {x: x1, y: y1} = getPixelPostion(spacing, i, j);
-                                let {x: x2, y: y2} = getPixelPostion(spacing, nni, nnj);
+                        for (const [[,], [nni, nnj]] of PATHS[i][j]) {
+                                let { x: x1, y: y1 } = getPixelPostion(spacing, i, j);
+                                let { x: x2, y: y2 } = getPixelPostion(spacing, nni, nnj);
                                 const line = document.createElementNS(SVG_NS, "line");
                                 console.log(x1, y1, x2, y2);
                                 line.setAttribute("x1", y1);
@@ -195,7 +195,7 @@ async function showPaths() {
                                 layer.appendChild(line);
                                 // Pause execution for 2 seconds before removing the line
                                 setTimeout(() => {
-                                                line.remove();
+                                        line.remove();
                                 }, 2000);
 
                                 // Block further code execution for 2 seconds
@@ -204,7 +204,7 @@ async function showPaths() {
                 }
         }
 }
-async function showEdges() {   
+async function showEdges() {
         for (let i = 0; i < rowSize; i++) {
                 for (let j = 0; j < colSize; j++) {
                         if (badPoint(i, j)) continue;
@@ -234,13 +234,9 @@ let currentTurn = 0;
 let currentState = 0;
 let selectedGuti = null;
 
-// Scoreboard refs
+// NEW: score elements
+const p0ScoreEl = document.getElementById("player0-score");
 const p1ScoreEl = document.getElementById("player1-score");
-const p2ScoreEl = document.getElementById("player2-score");
-const turnEl = document.getElementById("turn-indicator");
-const p1Card = document.querySelector('.player-card[data-player="0"]');
-const p2Card = document.querySelector('.player-card[data-player="1"]');
-const resetBtn = document.getElementById("reset-score");
 
 // Guti class — now each intersection is a Guti
 class Guti {
@@ -325,13 +321,13 @@ function swapGuti(currentGuti, targetGuti) {
         targetGuti.updateColor();
 
 }
-let specialGutis = [{ row: 0, col: 1}, 
-                    { row: 0, col: 3},
-                    { row: 2, col: 2},
-                    { row: 6, col: 2},
-                    { row: 8, col: 1},
-                    { row: 8, col: 3}
-                ];
+let specialGutis = [{ row: 0, col: 1 },
+{ row: 0, col: 3 },
+{ row: 2, col: 2 },
+{ row: 6, col: 2 },
+{ row: 8, col: 1 },
+{ row: 8, col: 3 }
+];
 function connectedByEdge(x1, y1, x2, y2) {
         let dr = Math.abs(x1 - x2);
         let dc = Math.abs(y1 - y2);
@@ -388,31 +384,22 @@ board.addEventListener("click", () => {
 });
 
 function updateScoreboard() {
-        // Update numbers
+        // NEW: reflect scores in UI
+        if (p0ScoreEl) p0ScoreEl.textContent = `Score: ${score[0]}`;
+        if (p1ScoreEl) p1ScoreEl.textContent = `Score: ${score[1]}`;
+
+        if (score[0] < 16 && score[1] < 16) {
+                return;
+        }
         if (score[0] >= 16) {
                 alert("Red wins!");
-                resetGame();
         } else if (score[1] >= 16) {
                 alert("Blue wins!");
-                resetGame();
         }
-        p1ScoreEl.textContent = score[0];
-        p2ScoreEl.textContent = score[1];
-
-        // Turn indicator text + active highlight
-        const isRedTurn = currentTurn === 0;
-        turnEl.textContent = isRedTurn ? "Red’s turn" : "Blue’s turn";
-        p1Card.classList.toggle("active", isRedTurn);
-        p2Card.classList.toggle("active", !isRedTurn);
-}
-
-resetBtn?.addEventListener("click", (e) => {
-        e.stopPropagation();
-        score = [0, 0];
-        updateScoreboard();
         resetGame();
-});
-
+        if (p0ScoreEl) p0ScoreEl.textContent = `Score: ${score[0]}`;
+        if (p1ScoreEl) p1ScoreEl.textContent = `Score: ${score[1]}`;
+}
 function getSpacing(row) {
         if (row <= 1 || row >= 7) {
                 return spacing / 2;
