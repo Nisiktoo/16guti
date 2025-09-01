@@ -417,7 +417,7 @@ function revertMove(move) {
         // Move the source piece back to its original position
         const targetGuti = gutis[target.row][target.col];
         swapGuti(targetGuti, srcGuti);
-        currentState = gameState;
+        currentState = 0;
         if (typeof medium !== "undefined" && medium !== null) {
                 const medGuti = gutis[medium.row][medium.col];
                 score[srcGuti.player]--;
@@ -426,7 +426,7 @@ function revertMove(move) {
                         medGuti.updateColor();
                 }
         }
-        currentTurn = 1 - currentTurn;
+        currentTurn = srcGuti.player;
         totalMoves = Math.max(0, totalMoves - 1);
         refreshMoveCountUI();
         return true;
