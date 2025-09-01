@@ -78,6 +78,46 @@ const PATHS = [
 /* =========================
    4) Utilities
    ========================= */
+class Stack {
+        constructor(maxSize = Infinity) {
+                this._arr = [];
+                this._max = maxSize;
+        }
+
+        push(item) {
+                if (this._arr.length >= this._max) {
+                        // policy: drop oldest (bottom) to keep bounded size
+                        this._arr.shift();
+                }
+                this._arr.push(item);
+        }
+
+        pop() {
+                return this._arr.length ? this._arr.pop() : undefined;
+        }
+
+        peek() {
+                return this._arr.length ? this._arr[this._arr.length - 1] : undefined;
+        }
+
+        size() {
+                return this._arr.length;
+        }
+
+        isEmpty() {
+                return this._arr.length === 0;
+        }
+
+        clear() {
+                this._arr.length = 0;
+        }
+
+        toArray() {
+                return this._arr.slice(); // shallow copy, top at end
+        }
+}
+
+
 function badPoint(row, col) {
         if (row < 0 || row >= rowSize || col < 0 || col >= colSize) return true;
         if (row >= 2 && row <= 6) return false;
@@ -324,10 +364,140 @@ class Guti {
                 else this.el.setAttribute("fill", color[2]);
         }
 }
-
+const movesHistory = new Stack(500); // store last 100 moves
 /* =========================
    8) Game mechanics
    ========================= */
+// build move object - determines medium via PATHS if possible
+function makeMoveObject(srcG, medG, tgtG, gameState) {
+        if (!srcG || !tgtG) return null;
+
+        const src = { row: srcG.row, col: srcG.col, player: srcG.player };
+        let med = null;
+        if (medG) {
+               med = { row: medG.row, col: medG.col, player: medG.player };
+        }
+        const tgt = { row: tgtG.row, col: tgtG.col, player: tgtG.player };
+
+        return {
+                source: src,
+                medium: med, // null if step
+                target: tgt,
+                gameState: gameState
+        };
+}
+// 8-space indentation preserved
+
+// Ensure stacks exist (use global so other modules can access)
+
+// DOM refs
+const undoBtn = document.getElementById("undo-button");
+const moveCountEl = document.getElementById("move-count");
+
+// Helper: update move counter UI
+function refreshMoveCountUI() {
+        if (moveCountEl) moveCountEl.textContent = `Moves: ${totalMoves}`;
+}
+
+// Basic "shake" animation for feedback when stack empty
+function flashEmptyUndo(button) {
+        if (!button || !button.animate) return;
+        button.animate([
+                { transform: "translateY(0)" },
+                { transform: "translateY(-6px)" },
+                { transform: "translateY(0)" }
+        ], { duration: 220, easing: "ease-out" });
+}
+function revertMove(move) {
+        if (!move) return false;
+
+        // Restore the game state to the previous position
+        const { source, medium, target, gameState} = move;
+        const srcGuti = gutis[source.row][source.col];
+        // Move the source piece back to its original position
+        const targetGuti = gutis[target.row][target.col];
+        swapGuti(targetGuti, srcGuti);
+        currentState = gameState;
+        if (typeof medium !== "undefined" && medium !== null) {
+                const medGuti = gutis[medium.row][medium.col];
+                if (medGuti) {
+                        medGuti.player = 1 - srcGuti.player;
+                        medGuti.updateColor();
+                }
+        }
+        currentTurn = 1 - currentTurn;
+        totalMoves = Math.max(0, totalMoves - 1);
+        refreshMoveCountUI();
+        return true;
+}
+
+// Undo handler
+function handleUndoClick() {
+        // nothing to undo
+        if (!movesHistory || movesHistory.isEmpty()) {
+                flashEmptyUndo(undoBtn);
+                return;
+        }
+
+        // pop the last move
+        const move = movesHistory.pop();
+        if (!move) {
+                flashEmptyUndo(undoBtn);
+                return;
+        }
+
+        // try to revert using your revertMove(move)
+        const ok = revertMove(move);
+        if (!ok) {
+                // if revert failed, push move back and warn
+
+                return;
+        }
+
+        // // push into redo stack for possible redo
+        // window.redoStack = window.redoStack || [];
+        // window.redoStack.push(move);
+
+        // update bookkeeping
+        totalMoves = Math.max(0, totalMoves - 1);
+        refreshMoveCountUI();
+
+        // clear any selection state (safer UX)
+        if (selectedGuti) {
+                try { selectedGuti.el.classList.remove("selected"); } catch (e) { /* ignore */ }
+                selectedGuti = null;
+                currentState = 0;
+        }
+
+        // update scoreboard and active-player UI (if present)
+        if (typeof updateScoreboard === "function") updateScoreboard();
+        if (window.uiPlayers && typeof window.uiPlayers.setActivePlayerUI === "function") {
+                window.uiPlayers.setActivePlayerUI(currentTurn);
+        }
+
+        // optional feedback sound
+        if (typeof playSound === "function") playSound("move", 0.6);
+}
+
+// Wire click event
+if (undoBtn) {
+        undoBtn.addEventListener("click", handleUndoClick, { passive: true });
+}
+
+// Optional: keyboard shortcut for undo (Ctrl/Cmd+Z)
+document.addEventListener("keydown", (ev) => {
+        const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+        const undoKey = isMac ? (ev.metaKey && ev.key === "z") : (ev.ctrlKey && ev.key === "z");
+        if (undoKey) {
+                // avoid triggering when focus is on input elements
+                const tag = document.activeElement && document.activeElement.tagName;
+                if (tag === "INPUT" || tag === "TEXTAREA" || document.activeElement.isContentEditable) return;
+                ev.preventDefault();
+                handleUndoClick();
+        }
+});
+
+
 function swapGuti(currentGuti, targetGuti) {
         removeFromSelected(currentGuti)
         // currentGuti.el.classList.remove("selected");
@@ -357,6 +527,8 @@ function moveGuti(currentGuti, targetGuti) {
         const isEdge = EDGES[i][j].some(arr => arr[0] === ni && arr[1] === nj);
         if (isEdge) {
                 if (currentState === 2) return 0; // cannot step during capture chain
+                let curMove = makeMoveObject(currentGuti, null, targetGuti, 0);
+                movesHistory.push(curMove);
                 swapGuti(currentGuti, targetGuti);
                 return 1; // simple move
         }
@@ -368,7 +540,8 @@ function moveGuti(currentGuti, targetGuti) {
         const [mi, mj] = PATHS[i][j][pathIndex][0];
         const middleGuti = gutis[mi][mj];
         if (middleGuti.player !== (1 - currentGuti.player)) return 0;
-
+        let curMove = makeMoveObject(currentGuti, middleGuti, targetGuti, currentState === 2 ? 2 : 0);
+        movesHistory.push(curMove);
         middleGuti.player = 2;
         middleGuti.updateColor();
         swapGuti(currentGuti, targetGuti);
@@ -386,8 +559,10 @@ function addToSelected(guti) {
         guti.el.style.setProperty("--selected-stroke", fill);
 }
 function removeFromSelected(guti) {
-        guti.el.classList.remove("selected");
-        guti.el.style.removeProperty("--selected-stroke");
+        if (guti.el.classList.contains("selected")) {
+                guti.el.classList.remove("selected");
+                guti.el.style.removeProperty("--selected-stroke");
+        }
 }
 
 function handleGutiClick(e) {
@@ -413,6 +588,8 @@ function handleGutiClick(e) {
 
         const capturedGuti = moveGuti(selectedGuti, guti);
         if (capturedGuti === 0) return;
+        totalMoves++;
+        refreshMoveCountUI();
 
         if (capturedGuti === 1) {
                 playSound("move"); // simple move
@@ -421,7 +598,6 @@ function handleGutiClick(e) {
                 window.uiPlayers.setActivePlayerUI(currentTurn);
                 removeFromSelected(selectedGuti);
                 selectedGuti = null;
-                totalMoves++;
                 updateScoreboard();
         } else {
                 playSound("capture", 0.4); // capture move
@@ -429,7 +605,6 @@ function handleGutiClick(e) {
                 currentState = 2;
                 selectedGuti = guti;
                 addToSelected(selectedGuti);
-                totalMoves++;
                 updateScoreboard();
 
                 if (!canCapture(selectedGuti)) {

@@ -2,7 +2,9 @@
         --board-max: 500px;
         /* single source of truth for width */
 }
-
+button {
+        cursor: pointer;
+}
 .game-container {
         display: flex;
         flex-direction: column;
@@ -13,6 +15,18 @@
         /* container width */
         margin: 0 auto;
 }
+.game-controls {
+        display: flex;
+        width: 100%;
+        justify-content: space-between; /* Push items to edges */
+        padding: 10px 10px 1px 10px;
+        border-radius: 8px;
+        text-align: center;
+        background: #f0f0f0;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        box-sizing: border-box;
+}
+
 
 .player-status {
         display: flex;

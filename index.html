@@ -11,12 +11,21 @@
 <body>
         <div class="game-container">
                 <h1>16 Guti</h1>
-
+                <div class="game-controls">
+                        <div class="move-counter">
+                                <span title="Total Number of Moves" id="move-count">Moves: 0</span>
+                        </div>
+                        <button id="undo-button" class="control-button" title="Undo last move">
+                                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z" />
+                                </svg>
+                        </button>
+                </div>
                 <!-- Player 0 (top) -->
                 <div class="player-status player1" data-player="0" aria-live="polite">
                         <div class="status-info">
                                 <label class="color-picker" title="Choose Player 0 color">
-                                        <input type="color" id="player0-color" value="#ff4d4f" />
+                                        <input type="color" id="player1-color" value="#ff4d4f" />
                                 </label>
                                 <span id="player0-score">Score: 0</span>
                         </div>
