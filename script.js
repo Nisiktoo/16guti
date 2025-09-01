@@ -402,28 +402,30 @@ function handleGutiClick(e) {
         if (capturedGuti === 0) return;
 
         if (capturedGuti === 1) {
-                currentState = 0;
-                currentTurn = 1 - currentTurn;
-                selectedGuti.el.classList.remove("selected");
-                selectedGuti = null;
-                totalMoves++;
-                updateScoreboard(); // turn changed
-        } else {
-                score[currentTurn]++;
-                currentState = 2;
-                selectedGuti = guti;
-                selectedGuti.el.classList.add("selected");
-                totalMoves++;
-                updateScoreboard(); // score changed
+    playSound("move"); // simple move
+    currentState = 0;
+    currentTurn = 1 - currentTurn;
+    selectedGuti.el.classList.remove("selected");
+    selectedGuti = null;
+    totalMoves++;
+    updateScoreboard();
+  } else {
+    playSound("capture", 0.4); // capture move
+    score[currentTurn]++;
+    currentState = 2;
+    selectedGuti = guti;
+    selectedGuti.el.classList.add("selected");
+    totalMoves++;
+    updateScoreboard();
 
-                if (!canCapture(selectedGuti)) {
-                        currentState = 0;
-                        currentTurn = 1 - currentTurn;
-                        selectedGuti.el.classList.remove("selected");
-                        selectedGuti = null;
-                        updateScoreboard(); // turn changed
-                }
-        }
+    if (!canCapture(selectedGuti)) {
+      currentState = 0;
+      currentTurn = 1 - currentTurn;
+      selectedGuti.el.classList.remove("selected");
+      selectedGuti = null;
+      updateScoreboard();
+    }
+  }
 }
 
 // Clear selection when clicking outside any guti (unless in capture chain)
@@ -443,6 +445,7 @@ function updateScoreboard() {
 
         if (score[0] >= 16 || score[1] >= 16) {
                 alert(score[0] >= 16 ? "Red wins!" : "Blue wins!");
+                playSound("victory");
                 resetGame();
                 if (p0ScoreEl) p0ScoreEl.textContent = `Score: ${score[0]}`;
                 if (p1ScoreEl) p1ScoreEl.textContent = `Score: ${score[1]}`;
@@ -508,3 +511,24 @@ updateScoreboard();
 // Optional diagnostics:
 // showEdges();
 // showPaths();
+
+/* =========================
+   12) Sounds
+   ========================= */
+const SOUND_PATH = "./sounds/";
+const sounds = {};
+function loadSound(key, file) {
+        const a = new Audio(`${SOUND_PATH}${file}`);
+        a.preload = "auto";
+        sounds[key] = a;
+}
+function playSound(key, volume = 0.7) {
+        const base = sounds[key];
+        if (!base) return;
+        const inst = base.cloneNode(); // allow overlapping plays
+        inst.volume = volume;
+        inst.play().catch(() => { });
+}
+loadSound("move", "move.mp3");
+loadSound("capture", "capture.mp3");
+loadSound("victory", "victory.mp3");
