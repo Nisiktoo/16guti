@@ -420,6 +420,7 @@ function revertMove(move) {
         currentState = gameState;
         if (typeof medium !== "undefined" && medium !== null) {
                 const medGuti = gutis[medium.row][medium.col];
+                score[srcGuti.player]--;
                 if (medGuti) {
                         medGuti.player = 1 - srcGuti.player;
                         medGuti.updateColor();
