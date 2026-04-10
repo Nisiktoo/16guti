@@ -352,7 +352,7 @@ class Guti {
 
                 // Large invisible stroke as hit area to ease tapping
                 this.el.setAttribute("stroke", "transparent");
-                this.el.setAttribute("stroke-width", "24px");
+                this.el.setAttribute("stroke-width", "35px");
 
                 this.el.addEventListener("click", handleGutiClick.bind(this));
                 layer.appendChild(this.el);
