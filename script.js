@@ -768,13 +768,8 @@ p1ColorInput?.addEventListener("input", (e) => {
         updateAllPieceColors();
 });
 
-// ...existing code...
 // Build and render
 updateAllPieceColors(); // ensure initial picker colors are applied
-// ...existing code...
-// ...existing code...
-// ...existing code...
-// ...existing code...
 
 // NEW: board background controls
 const boardContainer = document.getElementById("board-container");
@@ -949,3 +944,28 @@ decreaseRadiusBtn?.addEventListener("click", () => {
         }
 })();
 window.uiPlayers.setActivePlayerUI(currentTurn);
+
+// Toggle page scrolling (minimal)
+const toggleScrollBtn = document.getElementById("toggle-scroll-button");
+
+function setScrollingDisabled(disabled) {
+  document.documentElement.style.overflow = disabled ? "hidden" : "";
+  document.body.style.overflow = disabled ? "hidden" : "";
+  if (toggleScrollBtn) {
+    toggleScrollBtn.setAttribute("aria-pressed", String(disabled));
+    toggleScrollBtn.classList.toggle("active", disabled);
+  }
+  localStorage.setItem("page-scroll-disabled", String(disabled));
+}
+
+toggleScrollBtn?.addEventListener("click", (e) => {
+  e.preventDefault();
+  const currentlyDisabled = localStorage.getItem("page-scroll-disabled") === "true";
+  setScrollingDisabled(!currentlyDisabled);
+});
+
+// initialize from storage
+(function initScrollState() {
+  const disabled = localStorage.getItem("page-scroll-disabled") === "true";
+  setScrollingDisabled(disabled);
+})();
