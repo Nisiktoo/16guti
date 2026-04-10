@@ -950,7 +950,7 @@ const toggleScrollBtn = document.getElementById("toggle-scroll-button");
 
 function setScrollingDisabled(disabled) {
   document.documentElement.style.overflow = disabled ? "hidden" : "";
-  document.body.style.overflow = disabled ? "hidden" : "";
+        //   document.body.style.overflow = disabled ? "hidden" : "";
   if (toggleScrollBtn) {
     toggleScrollBtn.setAttribute("aria-pressed", String(disabled));
     toggleScrollBtn.classList.toggle("active", disabled);
